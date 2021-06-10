@@ -61,5 +61,5 @@ def compression(img):
         # Step 4: Zigzag + Huffman
     pass
 
-dummy = np.ones((11, 5, 3))
-compression(dummy)
+# dummy = np.ones((11, 5, 3))
+# compression(dummy)
