@@ -1,3 +1,5 @@
+# install codo-jpeg as top-level editable package.
+-e .
 numpy
 matplotlib
 pytest

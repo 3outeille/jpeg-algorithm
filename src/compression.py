@@ -5,13 +5,11 @@ def padding(img, mode="black"):
     """
         Only work for 2d matrix.
     """
-    # print(f"before: {img.shape}")
-
     # Round up to nearest multiple of 8
     w = (img.shape[0] + 7) & (-8)
     h = (img.shape[1] + 7) & (-8)
 
-    # Smarter padding -> Pad with image center in middle.
+    # Smart padding -> Pad with image center in middle.
     delta_w = w - img.shape[0]
     delta_h = h - img.shape[1]
     
@@ -32,9 +30,8 @@ def padding(img, mode="black"):
     elif mode == "replicate":
         img = np.pad(img, [(ax1_top, ax1_bot), (ax2_left, ax2_right)], 'symmetric')
     else:
-        raise ValueError("This ode doesn't exist")
+        raise ValueError("This mode doesn't exist")
 
-    # print(f"after: {img.shape}")
     return img
 
 def block_splitting(img):
