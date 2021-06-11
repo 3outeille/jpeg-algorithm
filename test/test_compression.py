@@ -140,3 +140,44 @@ class TestQuantization:
         result = quantization(self.dct_block, self.Q)
         np.allclose(result, self.expected)
         assert result.dtype == self.expected.dtype
+
+class TestZigZag:
+    @classmethod
+    def setup_class(cls):
+        # Taken from wikipedia: https://en.wikipedia.org/wiki/JPEG#Encoding
+        cls.quantized_block = np.array([
+            [-26, -3, -6, 2, 2, -1, 0, 0],
+            [0, -2, -4, 1, 1, 0, 0, 0],
+            [-3, 1, 5, -1, -1, 0, 0, 0],
+            [-3, 1, 2, -1, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]]
+        )
+
+        cls.expected = np.array(
+            [-26,
+            -3, 0,
+            -3, -2, -6,
+            2, -4, 1, -3,
+            1, 1, 5, 1, 2,
+            -1, 1, -1, 2, 0, 0,
+            0, 0, 0, -1, -1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0,
+            0, 0,
+            0]
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_zigzag(self):
+        result = zigzag(self.quantized_block)
+        np.allclose(result, self.expected)
