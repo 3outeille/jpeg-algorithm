@@ -198,6 +198,8 @@ class TestEntropyCoding:
         )
         
         cls.zigzag_order = zigzag(cls.quantized_block)
+        # JPEG coefficient coding category 15
+        cls.largest_range = list(itertools.product(['0', '1'], repeat=15))
 
         cls.expected = np.array(
             ["11000101",
@@ -228,7 +230,7 @@ class TestEntropyCoding:
         pass
 
     def test_entropy_coding(self):
-        result = entropy_coding(self.quantized_block)
+        result = entropy_coding(self.largest_range, self.quantized_block)
 
         assert len(result) == len(self.expected)
         

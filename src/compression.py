@@ -1,9 +1,10 @@
+import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
 from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE
-from src.utils import jpeg_coefficient_coding_categories, retrieve_binary_rep, save_img
+from src.utils import retrieve_binary_rep, save_img
 
 def padding(img, mode="black"):
     """
@@ -69,26 +70,22 @@ def zigzag(q_block):
 
     return np.trim_zeros(np.concatenate(res), trim='b')
 
-def entropy_coding(q_block):
+def huffman(largest_range, zigzag_order):
     final_encoding = []
-    zigzag_order = zigzag(q_block)
 
     # DC coeff encoding
     dc_coeff = zigzag_order[0]
-    CAT, ranges = jpeg_coefficient_coding_categories(dc_coeff)
-    binary = retrieve_binary_rep(ranges, dc_coeff)
+    CAT, binary = retrieve_binary_rep(largest_range, dc_coeff)
     codeword = HUFFMAN_DC_TABLE[CAT]
     final_encoding.append(codeword + binary)
 
-    # AC coeff encoding
+    # AC coeff encoding: Run Length Encoding
     RUN = 0
     for ac_coeff in zigzag_order[1:]:
         if ac_coeff == 0:
             RUN += 1
             continue
-
-        CAT, ranges = jpeg_coefficient_coding_categories(ac_coeff)
-        binary = retrieve_binary_rep(ranges, ac_coeff)
+        CAT, binary = retrieve_binary_rep(largest_range, ac_coeff)
         codeword = HUFFMAN_AC_TABLE[f"{RUN}/{CAT}"]
         final_encoding.append(codeword + binary)
         RUN = 0
@@ -98,10 +95,20 @@ def entropy_coding(q_block):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
+def entropy_coding(largest_range, q_block):
+    # Zigzag
+    zigzag_order = zigzag(q_block)
+    # Huffman
+    final_encoding = huffman(largest_range, zigzag_order)
+    return final_encoding
+
 
 def compression(img):
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")
+    
+    # JPEG coefficient coding category 15
+    largest_range = list(itertools.product(['0', '1'], repeat=15))
 
     img = np.transpose(img, (2, 0, 1))
     
@@ -115,13 +122,12 @@ def compression(img):
             dct_block = dct(block)
             # Step 3: Quantization + Round to nearest integer
             q_block = quantization(dct_block, Q_MAT)
-            # Step 4: Zigzag + RLE
-            final_encoding = entropy_coding(q_block)
-
+            # Step 4: Zigzag + Huffman
+            final_encoding = entropy_coding(largest_range, q_block)
             bitstream.append(final_encoding)
 
     return "".join(map(str, np.concatenate(bitstream)))
 
-img = plt.imread("pikachu-crop.png")
+img = plt.imread("nyancat-patrick.png")
 bitstream = compression(img)
-save_img(bitstream, "new_image.jpg")
+save_img(bitstream, "compressed-nyancat.jpg")

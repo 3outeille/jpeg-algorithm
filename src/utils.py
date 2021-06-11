@@ -13,29 +13,44 @@ Q_MAT = np.array([
 )
 
 # Table A
-def jpeg_coefficient_coding_categories(x):
-    if x == 0:
-        return 0, [('0')]
-    else:
-        category = len(bin(x).partition('b')[-1])
-        return category, list(itertools.product(['0', '1'], repeat=category))
+# def jpeg_coefficient_coding_categories(x):
+#     if x == 0:
+#         return 0, [('0')]
+#     else:
+#         category = len(bin(x).partition('b')[-1])
+#         return category, list(itertools.product(['0', '1'], repeat=category))
 
-def retrieve_binary_rep(L, x):
-    mid = len(L)//2
-    val = L[:mid][(x % mid) - 1] if (x < 0) else L[mid:][x - mid]
-    return "".join(val)
+# def retrieve_binary_rep(L, x):
+#     mid = len(L)//2
+#     val = L[:mid][(x % mid) - 1] if (x < 0) else L[mid:][x - mid]
+#     return "".join(val)
 
+def retrieve_binary_rep(largest_range, x):
+    """
+        Optimized version compare to previous one.
+        Only need to compute jpeg_coefficient_coding_categories once (category 15).
+        We then take range from it.
+    """
+    category = len(bin(x).partition('b')[-1])
+    subset = largest_range[0:2**category]
+    mid = len(subset) // 2
+    val = subset[:mid][(x % mid) - 1] if (x < 0) else subset[mid:][x - mid]
+    return category, "".join(val)[-category:]
+
+# largest_range = list(itertools.product(['0', '1'], repeat=15))
+# print(retrieve_binary_rep(largest_range, -7))
 
 def save_img(bitsteam, filename):
     with open(filename, "wb") as f:
         tmp = [int(bitsteam[i:i+8], 2) for i in range(0, len(bitsteam), 8)]
         f.write(bytearray(tmp))
 
-
-# x = -9
-# L = jpeg_coefficient_coding_categories(x)
+# x = -3
 # print(x)
+# CAT, L = jpeg_coefficient_coding_categories(x)
+# print(CAT, len(L))
 # print(retrieve_binary_rep(L, x))
+
 
 # Table B
 HUFFMAN_DC_TABLE = np.array([
