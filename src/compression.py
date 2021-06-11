@@ -3,7 +3,7 @@ import numpy as np
 import scipy as sp
 
 from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE
-from src.utils import jpeg_coefficient_coding_categories, retrieve_binary_rep
+from src.utils import jpeg_coefficient_coding_categories, retrieve_binary_rep, save_img
 
 def padding(img, mode="black"):
     """
@@ -105,7 +105,7 @@ def compression(img):
 
     img = np.transpose(img, (2, 0, 1))
     
-    img_compressed = []
+    bitstream = []
     for channel in range(3):
         # Step 1: Block splitting
         img_channel = padding(img[channel, ...], mode="replicate")
@@ -115,13 +115,13 @@ def compression(img):
             dct_block = dct(block)
             # Step 3: Quantization + Round to nearest integer
             q_block = quantization(dct_block, Q_MAT)
-            # Step 4: Zigzag + Huffman
+            # Step 4: Zigzag + RLE
             final_encoding = entropy_coding(q_block)
 
-            img_compressed.append(final_encoding)
+            bitstream.append(final_encoding)
 
-    return img_compressed
+    return "".join(map(str, np.concatenate(bitstream)))
 
 img = plt.imread("pikachu-crop.png")
-img_compressed = compression(img)
-print(img_compressed)
+bitstream = compression(img)
+save_img(bitstream, "new_image.jpg")

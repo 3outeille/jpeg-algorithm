@@ -26,6 +26,11 @@ def retrieve_binary_rep(L, x):
     return "".join(val)
 
 
+def save_img(bitsteam, filename):
+    with open(filename, "wb") as f:
+        tmp = [int(bitsteam[i:i+8], 2) for i in range(0, len(bitsteam), 8)]
+        f.write(bytearray(tmp))
+
 
 # x = -9
 # L = jpeg_coefficient_coding_categories(x)
