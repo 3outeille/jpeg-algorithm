@@ -110,7 +110,7 @@ class TestQuantization:
             [-0.17, 0.14, -1.07, -4.19, -1.17, -0.10, 0.50, 1.68]]
         )
         
-        cls.Q = np.array([
+        cls.Q_MAT = np.array([
             [16, 11, 10, 16, 24, 40, 51, 61],
             [12, 12, 14, 19, 26, 58, 60, 55],
             [14, 13, 16, 24, 40, 57, 69, 56],
@@ -137,7 +137,7 @@ class TestQuantization:
         pass
 
     def test_quantization(self):
-        result = quantization(self.dct_block, self.Q)
+        result = quantization(self.dct_block, self.Q_MAT)
         np.allclose(result, self.expected)
         assert result.dtype == self.expected.dtype
 
