@@ -25,11 +25,14 @@ Q_MAT = np.array([
 #     val = L[:mid][(x % mid) - 1] if (x < 0) else L[mid:][x - mid]
 #     return "".join(val)
 
-def retrieve_binary_rep(largest_range, x):
+def decimal_to_binary(largest_range, x):
     """
-        Optimized version compare to previous one.
-        Only need to compute jpeg_coefficient_coding_categories once (category 15).
-        We then take range from it.
+        Get binary represetation from decimal given a category range.
+
+        Notes:
+            Optimized version compare to previous one.
+            Only need to compute jpeg_coefficient_coding_categories once (category 15).
+            We then take range from it.
     """
     category = len(bin(x).partition('b')[-1])
     subset = largest_range[0:2**category]
@@ -39,6 +42,10 @@ def retrieve_binary_rep(largest_range, x):
 
 # largest_range = list(itertools.product(['0', '1'], repeat=15))
 # print(retrieve_binary_rep(largest_range, -7))
+
+def binary_to_decimal():
+    pass
+
 
 def save_img(bitsteam, filename):
     with open(filename, "wb") as f:
@@ -53,20 +60,35 @@ def save_img(bitsteam, filename):
 
 
 # Table B
-HUFFMAN_DC_TABLE = np.array([
-    "010",
-    "011",
-    "100",
-    "00",
-    "101",
-    "110",
-    "1110",
-    "11110",
-    "111110",
-    "1111110",
-    "11111110",
-    "111111110"
-])
+HUFFMAN_DC_TABLE = {
+    0: "010",
+    1: "011",
+    2: "100",
+    3: "00",
+    4: "101",
+    5: "110",
+    6: "1110",
+    7: "11110",
+    8: "111110",
+    9: "1111110",
+    10: "11111110",
+    11: "111111110"
+}
+
+HUFFMAN_DC_TABLE_INV = {
+    "010": 0,
+    "011": 1,
+    "100": 2,
+    "00": 3,
+    "101": 4,
+    "110": 5,
+    "1110": 6,
+    "11110": 7,
+    "111110": 8,
+    "1111110": 9,
+    "11111110": 10,
+    "111111110": 11
+}
 
 # Table C
 HUFFMAN_AC_TABLE = {

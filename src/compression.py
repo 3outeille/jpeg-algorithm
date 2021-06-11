@@ -4,7 +4,7 @@ import numpy as np
 import scipy as sp
 
 from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE
-from src.utils import retrieve_binary_rep, save_img
+from src.utils import decimal_to_binary, save_img
 
 def padding(img, mode="black"):
     """
@@ -75,7 +75,7 @@ def huffman(largest_range, zigzag_order):
 
     # DC coeff encoding
     dc_coeff = zigzag_order[0]
-    CAT, binary = retrieve_binary_rep(largest_range, dc_coeff)
+    CAT, binary = decimal_to_binary(largest_range, dc_coeff)
     codeword = HUFFMAN_DC_TABLE[CAT]
     final_encoding.append(codeword + binary)
 
@@ -85,7 +85,7 @@ def huffman(largest_range, zigzag_order):
         if ac_coeff == 0:
             RUN += 1
             continue
-        CAT, binary = retrieve_binary_rep(largest_range, ac_coeff)
+        CAT, binary = decimal_to_binary(largest_range, ac_coeff)
         codeword = HUFFMAN_AC_TABLE[f"{RUN}/{CAT}"]
         final_encoding.append(codeword + binary)
         RUN = 0
@@ -108,6 +108,7 @@ def compression(img):
         raise ValueError("Input image dimension is not supported")
     
     # JPEG coefficient coding category 15
+    # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
 
     img = np.transpose(img, (2, 0, 1))
