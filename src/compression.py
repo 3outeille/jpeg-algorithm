@@ -64,18 +64,18 @@ def dct(block):
 def quantization(dct_block, Q):
     return np.rint(np.divide(dct_block, Q)).astype(int)
 
-def zigzag(quantized_block):
-    n, m = quantized_block.shape
+def zigzag(q_block):
+    n, m = q_block.shape
     res = [[] for i in range(n + m - 1)]
     for i in range(n):
         for j in range(m):
             if (i + j) % 2 == 0:
-                res[i + j].insert(0, quantized_block[i][j])
+                res[i + j].insert(0, q_block[i][j])
             else:
-                res[i + j].append(quantized_block[i][j])
-    return np.concatenate(res)
-     
+                res[i + j].append(q_block[i][j])
 
+    return np.trim_zeros(np.concatenate(res), trim='b')
+     
 def compression(img):
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")

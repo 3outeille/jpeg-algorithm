@@ -180,4 +180,4 @@ class TestZigZag:
 
     def test_zigzag(self):
         result = zigzag(self.quantized_block)
-        np.allclose(result, self.expected)
+        np.allclose(result, np.trim_zeros(self.expected, trim='b'))
