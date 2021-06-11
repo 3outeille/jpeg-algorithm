@@ -73,7 +73,7 @@ def zigzag(quantized_block):
                 res[i + j].insert(0, quantized_block[i][j])
             else:
                 res[i + j].append(quantized_block[i][j])
-    return np.concatenate(res).ravel()
+    return np.concatenate(res)
      
 
 def compression(img):
