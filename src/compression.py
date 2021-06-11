@@ -1,7 +1,9 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
-from utils import Q_MAT, HUFFMAN_AC_TABLE
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE
+from src.utils import jpeg_coefficient_coding_categories, retrieve_binary_rep
 
 def padding(img, mode="black"):
     """
@@ -66,7 +68,37 @@ def zigzag(q_block):
                 res[i + j].append(q_block[i][j])
 
     return np.trim_zeros(np.concatenate(res), trim='b')
-     
+
+def entropy_coding(q_block):
+    final_encoding = []
+    zigzag_order = zigzag(q_block)
+
+    # DC coeff encoding
+    dc_coeff = zigzag_order[0]
+    CAT, ranges = jpeg_coefficient_coding_categories(dc_coeff)
+    binary = retrieve_binary_rep(ranges, dc_coeff)
+    codeword = HUFFMAN_DC_TABLE[CAT]
+    final_encoding.append(codeword + binary)
+
+    # AC coeff encoding
+    RUN = 0
+    for ac_coeff in zigzag_order[1:]:
+        if ac_coeff == 0:
+            RUN += 1
+            continue
+
+        CAT, ranges = jpeg_coefficient_coding_categories(ac_coeff)
+        binary = retrieve_binary_rep(ranges, ac_coeff)
+        codeword = HUFFMAN_AC_TABLE[f"{RUN}/{CAT}"]
+        final_encoding.append(codeword + binary)
+        RUN = 0
+    
+    # Add end of block.
+    EOB = "0/0"
+    final_encoding.append(HUFFMAN_AC_TABLE[EOB])
+    return final_encoding
+
+
 def compression(img):
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")
@@ -76,7 +108,7 @@ def compression(img):
     img_compressed = []
     for channel in range(3):
         # Step 1: Block splitting
-        img_channel = padding(img[channel, ...])
+        img_channel = padding(img[channel, ...], mode="replicate")
 
         for block in block_splitting(img_channel):
             # Step 2: Discrete cosine transform (DCT)
@@ -84,11 +116,12 @@ def compression(img):
             # Step 3: Quantization + Round to nearest integer
             q_block = quantization(dct_block, Q_MAT)
             # Step 4: Zigzag + Huffman
-            raise Exception("")
+            final_encoding = entropy_coding(q_block)
 
-            img_compressed.append(block)
-    
+            img_compressed.append(final_encoding)
+
     return img_compressed
 
-# dummy = np.ones((11, 11, 3))
-# compression(dummy)
+img = plt.imread("pikachu-crop.png")
+img_compressed = compression(img)
+print(img_compressed)

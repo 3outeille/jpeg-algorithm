@@ -15,15 +15,17 @@ Q_MAT = np.array([
 # Table A
 def jpeg_coefficient_coding_categories(x):
     if x == 0:
-        return [('0')]
+        return 0, [('0')]
     else:
         category = len(bin(x).partition('b')[-1])
-        return list(itertools.product(['0', '1'], repeat=category))
+        return category, list(itertools.product(['0', '1'], repeat=category))
 
 def retrieve_binary_rep(L, x):
     mid = len(L)//2
     val = L[:mid][(x % mid) - 1] if (x < 0) else L[mid:][x - mid]
     return "".join(val)
+
+
 
 # x = -9
 # L = jpeg_coefficient_coding_categories(x)

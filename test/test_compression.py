@@ -181,3 +181,56 @@ class TestZigZag:
     def test_zigzag(self):
         result = zigzag(self.quantized_block)
         np.allclose(result, np.trim_zeros(self.expected, trim='b'))
+
+class TestEntropyCoding:
+    @classmethod
+    def setup_class(cls):
+        # Taken from wikipedia: https://en.wikipedia.org/wiki/JPEG#Encoding
+        cls.quantized_block = np.array([
+            [-26, -3, -6, 2, 2, -1, 0, 0],
+            [0, -2, -4, 1, 1, 0, 0, 0],
+            [-3, 1, 5, -1, -1, 0, 0, 0],
+            [-3, 1, 2, -1, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]]
+        )
+        
+        cls.zigzag_order = zigzag(cls.quantized_block)
+
+        cls.expected = np.array(
+            ["11000101",
+            "0100",
+            "11100100",
+            "0101",
+            "100001",
+            "0110",
+            "100011",
+            "001",
+            "0100",
+            "001",
+            "001",
+            "100101",
+            "001",
+            "0110",
+            "000",
+            "001",
+            "000",
+            "0110",
+            "11110100",
+            "000",
+            "1010"]
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_entropy_coding(self):
+        result = entropy_coding(self.quantized_block)
+
+        assert len(result) == len(self.expected)
+        
+        for res, exp in zip(result, self.expected):
+            assert res == exp
