@@ -4,3 +4,8 @@ numpy
 matplotlib
 pytest
 scipy
+
+# Test
+plotly
+pandas
+ipywidgets

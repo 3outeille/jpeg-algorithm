@@ -1,4 +1,5 @@
 import itertools
+import numpy as np
 
 from src.utils import HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
 from src.utils import binary_to_decimal
@@ -9,11 +10,49 @@ def dct_inv():
 def quantization_inv():
     pass
 
-def zigzag_inv():
-    pass
+def zigzag_inv(final_encoding):
+    q_block = np.zeros((8, 8), dtype=int)
+    count, ptr, n = 0, 0, len(final_encoding)
+
+    for diag_len, _ in enumerate(range(n)):
+        if count < n:
+            idx_i = [i for i in range(diag_len + 1)]
+            idx_j = [j for j in range(diag_len, -1, -1)]
+
+            for i, j in zip(idx_i, idx_j):
+                if ptr < n:
+                    if diag_len % 2 == 1:
+                        q_block[i][j] = final_encoding[ptr]
+                    else: 
+                        q_block[j][i] = final_encoding[ptr]
+                    ptr += 1
+        else:
+            break
+
+        count += diag_len + 1
+    
+    # count, diag_len = 0, 0
+    # while count < n:
+    #     idx_i = [i for i in range(diag_len + 1)]
+    #     idx_j = [j for j in range(diag_len, -1, -1)]
+
+    #     for i, j in zip(idx_i, idx_j):
+    #         if ptr < n:
+    #             if diag_len % 2 == 1:
+    #                 q_block[i][j] = final_encoding[ptr]
+    #             else: 
+    #                 q_block[j][i] = final_encoding[ptr]
+    #             ptr += 1
+
+    #     count += diag_len + 1
+    #     diag_len += 1
+
+    return q_block
+
+[-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0]
 
 def huffman_inv(bitstream, largest_range):
-    res = []
+    final_encoding = []
 
     beg, end = 0, 0
     # Retrieve DC coeff
@@ -25,7 +64,7 @@ def huffman_inv(bitstream, largest_range):
         end += 1
 
     dc_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
-    res.append(dc_coeff)
+    final_encoding.append(dc_coeff)
     
     end += CAT
     beg = end
@@ -45,12 +84,21 @@ def huffman_inv(bitstream, largest_range):
         ac_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
 
         for i in range(RUN):
-            res.append(0)
+            final_encoding.append(0)
             
-        res.append(ac_coeff)
+        final_encoding.append(ac_coeff)
 
         end += CAT
         beg = end
+
+    return final_encoding
+
+def entropy_coding_inv(largest_range, bitstream):
+    
+    # Huffman inverse
+    res = huffman_inv(bitstream, largest_range)
+    # Zigzag inverse
+    res = zigzag_inv(res)
 
     return res
 
@@ -60,7 +108,8 @@ def decompress(bistream):
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
 
-    res = huffman_inv(bistream, largest_range)
+    res = entropy_coding_inv(largest_range, bitstream)
+
     print(res)
 
 # bitstream = "11000101"
