@@ -9,7 +9,9 @@ def dct_inv(dct_block):
     block = sp.fft.dct(dct_block, axis=0, type=3, norm="ortho")
     block = sp.fft.dct(block, axis=1, type=3, norm="ortho")
     block = block + 128
-    return np.rint(block).astype(int)
+    block = np.rint(block).astype(int)
+    block = np.clip(block, 0, 255)
+    return block
 
 def quantization_inv(q_block, Q_MAT):
     dct_block = np.multiply(q_block, Q_MAT)
