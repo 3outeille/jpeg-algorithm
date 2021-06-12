@@ -1,14 +1,15 @@
 import itertools
 import numpy as np
 
-from src.utils import HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
 from src.utils import binary_to_decimal
 
 def dct_inv():
     pass
 
-def quantization_inv():
-    pass
+def quantization_inv(q_block, Q_MAT):
+    dct_block = np.multiply(q_block, Q_MAT)
+    return dct_block
 
 def zigzag_inv(final_encoding):
     q_block = np.zeros((8, 8), dtype=int)
@@ -88,13 +89,15 @@ def decompress(bistream):
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
     
-    res = entropy_coding_inv(bitstream, largest_range)
+    q_block = entropy_coding_inv(bitstream, largest_range)
+    dct_block = quantization_inv(q_block, Q_MAT)
 
-    print(res)
+    # print(dct_block)
+    
 
 # bitstream = "11000101"
 bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
 # bitstream = "11000101 | 0100 | 11100100 | 0101 | 100001 | 0110 | 100011 | 001 | 0100 | 001 | 001 | 100101 | 001 | 0110 | 000 | 001 | 000 | 0110 | 11110100 | 000 |  1010"
 #              0      7   8  11  12     19 20  23 24    29 30  33 34    39 40 42 43  46 47 49 50 52 53    58 59 61 62  65 66 68 69 71 72 74 75  78 79      86 87  89 90  93     
 #               -26        -3       0 -3     -2      -6      2       -4      1     -3     1     1      5       1      2     -1    1    -1     2     00000-1    -1      EOB
-# decompress(bitstream)
+decompress(bitstream)

@@ -70,3 +70,37 @@ class TestEntropyCodingInv:
     def test_entropy_coding_inv(self):
         result = entropy_coding_inv(self.bitstream, self.largest_range)
         np.allclose(result, self.expected)
+
+class TestQuantizationInv:
+
+    @classmethod
+    def setup_class(cls):
+        cls.q_block = np.array([
+            [-26, -3, -6, 2, 2, -1, 0, 0],
+            [0, -2, -4, 1, 1, 0, 0, 0],
+            [-3, 1, 5, -1, -1, 0, 0, 0],
+            [-3, 1, 2, -1, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]]
+        )
+
+        cls.expected = np.array([
+            [-416,  -33,  -60,   32,   48,  -40,    0,    0],
+            [   0,  -24,  -56,   19,   26,    0,    0,    0],
+            [ -42,   13,   80,  -24,  -40,    0,    0,    0],
+            [ -42,   17,   44,  -29,    0,    0,    0,    0],
+            [  18,    0,    0,    0,    0,    0,    0,    0],
+            [   0,    0,    0,    0,    0,    0,    0,    0],
+            [   0,    0,    0,    0,    0,    0,    0,    0],
+            [   0,    0,    0,    0,    0,    0,    0,    0]
+        ])
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_quantization_inv(self):
+        result = quantization_inv(self.q_block, Q_MAT)
+        np.allclose(result, self.expected)
