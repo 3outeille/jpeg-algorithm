@@ -182,6 +182,47 @@ class TestZigZag:
         result = zigzag(self.quantized_block)
         np.allclose(result, np.trim_zeros(self.expected, trim='b'))
 
+class TestHuffman:
+
+    @classmethod
+    def setup_class(cls):
+        cls.zigzag_order = np.array([-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0])
+        cls.largest_range = list(itertools.product(['0', '1'], repeat=15))
+        cls.expected = np.array(
+            ["11000101",
+            "0100",
+            "11100100",
+            "0101",
+            "100001",
+            "0110",
+            "100011",
+            "001",
+            "0100",
+            "001",
+            "001",
+            "100101",
+            "001",
+            "0110",
+            "000",
+            "001",
+            "000",
+            "0110",
+            "11110100",
+            "000",
+            "1010"]
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_huffman(self):
+        result = huffman(self.zigzag_order, self.largest_range)
+        assert len(result) == len(self.expected)
+        
+        for res, exp in zip(result, self.expected):
+            assert res == exp
+
 class TestEntropyCoding:
     @classmethod
     def setup_class(cls):
@@ -230,7 +271,7 @@ class TestEntropyCoding:
         pass
 
     def test_entropy_coding(self):
-        result = entropy_coding(self.largest_range, self.quantized_block)
+        result = entropy_coding(self.quantized_block, self.largest_range)
 
         assert len(result) == len(self.expected)
         
