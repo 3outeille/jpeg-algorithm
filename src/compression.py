@@ -1,5 +1,4 @@
 import itertools
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
@@ -56,7 +55,8 @@ def dct(block):
     return dct_block
 
 def quantization(dct_block, Q):
-    return np.rint(np.divide(dct_block, Q)).astype(int)
+    q_block = np.divide(dct_block, Q)
+    return np.rint(q_block).astype(int)
 
 def zigzag(q_block):
     n, m = q_block.shape
