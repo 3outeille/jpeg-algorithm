@@ -43,9 +43,22 @@ def decimal_to_binary(largest_range, x):
 # largest_range = list(itertools.product(['0', '1'], repeat=15))
 # print(retrieve_binary_rep(largest_range, -7))
 
-def binary_to_decimal():
-    pass
+def binary_to_decimal(binary, largest_range):
+    CAT = len(binary)
+    subset = largest_range[0:2**CAT]
+    n = len(subset)
+    mid, left = n // 2, n - 1
 
+    for inc_right, elt in enumerate(subset):
+        tmp = "".join(elt[-CAT:])
+        if binary == tmp:
+            return -left + inc_right if (inc_right < mid) else inc_right
+    return 0
+
+# largest_range = list(itertools.product(['0', '1'], repeat=15))
+# print(binary_to_decimal("00101", largest_range))
+# print(binary_to_decimal("01", largest_range))
+# print(binary_to_decimal("", largest_range))
 
 def save_img(bitsteam, filename):
     with open(filename, "wb") as f:
