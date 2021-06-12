@@ -12,44 +12,26 @@ def quantization_inv():
 
 def zigzag_inv(final_encoding):
     q_block = np.zeros((8, 8), dtype=int)
-    count, ptr, n = 0, 0, len(final_encoding)
-
-    for diag_len, _ in enumerate(range(n)):
-        if count < n:
-            idx_i = [i for i in range(diag_len + 1)]
-            idx_j = [j for j in range(diag_len, -1, -1)]
-
-            for i, j in zip(idx_i, idx_j):
-                if ptr < n:
-                    if diag_len % 2 == 1:
-                        q_block[i][j] = final_encoding[ptr]
-                    else: 
-                        q_block[j][i] = final_encoding[ptr]
-                    ptr += 1
-        else:
-            break
-
-        count += diag_len + 1
+    nb_square, diagonal, ptr, n = 0, 0, 0, len(final_encoding)
     
-    # count, diag_len = 0, 0
-    # while count < n:
-    #     idx_i = [i for i in range(diag_len + 1)]
-    #     idx_j = [j for j in range(diag_len, -1, -1)]
+    while nb_square < n:
+        idx_i = [i for i in range(diagonal + 1)]
+        idx_j = [j for j in range(diagonal, -1, -1)]
 
-    #     for i, j in zip(idx_i, idx_j):
-    #         if ptr < n:
-    #             if diag_len % 2 == 1:
-    #                 q_block[i][j] = final_encoding[ptr]
-    #             else: 
-    #                 q_block[j][i] = final_encoding[ptr]
-    #             ptr += 1
+        for i, j in zip(idx_i, idx_j):
+            if ptr < n:
+                if diagonal % 2 == 1:
+                    q_block[i][j] = final_encoding[ptr]
+                else: # flip
+                    q_block[j][i] = final_encoding[ptr]
+                ptr += 1
+            else:
+                break
 
-    #     count += diag_len + 1
-    #     diag_len += 1
+        nb_square += diagonal + 1
+        diagonal += 1
 
     return q_block
-
-[-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0]
 
 def huffman_inv(bitstream, largest_range):
     final_encoding = []
@@ -93,22 +75,20 @@ def huffman_inv(bitstream, largest_range):
 
     return final_encoding
 
-def entropy_coding_inv(largest_range, bitstream):
-    
+def entropy_coding_inv(bitstream, largest_range):
     # Huffman inverse
-    res = huffman_inv(bitstream, largest_range)
+    final_encoding = huffman_inv(bitstream, largest_range)
     # Zigzag inverse
-    res = zigzag_inv(res)
-
-    return res
+    q_block = zigzag_inv(final_encoding)
+    return q_block
 
 def decompress(bistream):
 
     # JPEG coefficient coding category 15
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
-
-    res = entropy_coding_inv(largest_range, bitstream)
+    
+    res = entropy_coding_inv(bitstream, largest_range)
 
     print(res)
 
@@ -117,4 +97,4 @@ bitstream = "1100010101001110010001011000010110100011001010000100110010100101100
 # bitstream = "11000101 | 0100 | 11100100 | 0101 | 100001 | 0110 | 100011 | 001 | 0100 | 001 | 001 | 100101 | 001 | 0110 | 000 | 001 | 000 | 0110 | 11110100 | 000 |  1010"
 #              0      7   8  11  12     19 20  23 24    29 30  33 34    39 40 42 43  46 47 49 50 52 53    58 59 61 62  65 66 68 69 71 72 74 75  78 79      86 87  89 90  93     
 #               -26        -3       0 -3     -2      -6      2       -4      1     -3     1     1      5       1      2     -1    1    -1     2     00000-1    -1      EOB
-decompress(bitstream)
+# decompress(bitstream)
