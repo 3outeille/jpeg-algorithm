@@ -26,6 +26,7 @@ def huffman_inv(bitstream, largest_range):
 
     dc_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
     res.append(dc_coeff)
+    
     end += CAT
     beg = end
 
@@ -34,7 +35,6 @@ def huffman_inv(bitstream, largest_range):
         while end < len(bitstream) + 1:
             codeword = bitstream[beg:end]
             if codeword in HUFFMAN_AC_TABLE_INV:
-                print(f"codeword = {codeword}")
                 RUN_CAT = HUFFMAN_AC_TABLE_INV[codeword]
                 break
             end += 1
@@ -42,9 +42,7 @@ def huffman_inv(bitstream, largest_range):
         RUN, CAT = RUN_CAT.split("/")
         RUN, CAT = int(RUN), int(CAT)
 
-        print(f"beg = {beg} | end = {end}")
         ac_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
-        print(f"ac_coeff: {ac_coeff} | RUN/CAT {RUN_CAT}")
 
         for i in range(RUN):
             res.append(0)
@@ -52,9 +50,6 @@ def huffman_inv(bitstream, largest_range):
         res.append(ac_coeff)
 
         end += CAT
-        print(beg, end, len(bitstream))
-        print(res)
-        print("-----")
         beg = end
 
     return res
