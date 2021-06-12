@@ -70,12 +70,12 @@ def zigzag(q_block):
 
     return np.trim_zeros(np.concatenate(res), trim='b')
 
-def huffman(largest_range, zigzag_order):
+def huffman(zigzag_order, largest_range):
     final_encoding = []
 
     # DC coeff encoding
     dc_coeff = zigzag_order[0]
-    CAT, binary = decimal_to_binary(largest_range, dc_coeff)
+    CAT, binary = decimal_to_binary(dc_coeff, largest_range)
     codeword = HUFFMAN_DC_TABLE[CAT]
     final_encoding.append(codeword + binary)
 
@@ -85,7 +85,7 @@ def huffman(largest_range, zigzag_order):
         if ac_coeff == 0:
             RUN += 1
             continue
-        CAT, binary = decimal_to_binary(largest_range, ac_coeff)
+        CAT, binary = decimal_to_binary(ac_coeff, largest_range)
         codeword = HUFFMAN_AC_TABLE[f"{RUN}/{CAT}"]
         final_encoding.append(codeword + binary)
         RUN = 0
@@ -95,11 +95,11 @@ def huffman(largest_range, zigzag_order):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
-def entropy_coding(largest_range, q_block):
+def entropy_coding(q_block, largest_range):
     # Zigzag
     zigzag_order = zigzag(q_block)
     # Huffman
-    final_encoding = huffman(largest_range, zigzag_order)
+    final_encoding = huffman(zigzag_order, largest_range)
     return final_encoding
 
 
@@ -124,11 +124,11 @@ def compression(img):
             # Step 3: Quantization + Round to nearest integer
             q_block = quantization(dct_block, Q_MAT)
             # Step 4: Zigzag + Huffman
-            final_encoding = entropy_coding(largest_range, q_block)
+            final_encoding = entropy_coding(q_block, largest_range)
             bitstream.append(final_encoding)
 
     return "".join(map(str, np.concatenate(bitstream)))
 
-img = plt.imread("nyancat-patrick.png")
-bitstream = compression(img)
-save_img(bitstream, "compressed-nyancat.jpg")
+# img = plt.imread("nyancat-patrick.png")
+# bitstream = compression(img)
+# save_img(bitstream, "compressed-nyancat.jpg")

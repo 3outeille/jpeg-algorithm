@@ -25,7 +25,7 @@ Q_MAT = np.array([
 #     val = L[:mid][(x % mid) - 1] if (x < 0) else L[mid:][x - mid]
 #     return "".join(val)
 
-def decimal_to_binary(largest_range, x):
+def decimal_to_binary(x, largest_range):
     """
         Get binary represetation from decimal given a category range.
 
