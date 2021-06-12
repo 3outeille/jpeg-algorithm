@@ -41,7 +41,7 @@ class TestZigzagInv:
     def teardown_class(cls):
         pass
 
-    def test_huffman_inv(self):
+    def test_zigzag_inv(self):
         result = zigzag_inv(self.final_encoding)
         np.allclose(result, self.expected)
 
@@ -67,6 +67,6 @@ class TestEntropyCodingInv:
     def teardown_class(cls):
         pass
 
-    def test_huffman_inv(self):
+    def test_entropy_coding_inv(self):
         result = entropy_coding_inv(self.bitstream, self.largest_range)
         np.allclose(result, self.expected)
