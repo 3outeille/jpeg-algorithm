@@ -60,10 +60,14 @@ def binary_to_decimal(binary, largest_range):
 # print(binary_to_decimal("01", largest_range))
 # print(binary_to_decimal("", largest_range))
 
-def save_img(bitsteam, filename):
+def save_img(bitstream, filename):
     with open(filename, "wb") as f:
-        tmp = [int(bitsteam[i:i+8], 2) for i in range(0, len(bitsteam), 8)]
-        f.write(bytearray(tmp))
+        f.write(bitstream.encode('latin-1'))
+
+def load_img(filename):
+    with open(filename, "rb") as f:
+        bitstream = f.read()
+        return bitstream.decode('latin-1')
 
 # x = -3
 # print(x)

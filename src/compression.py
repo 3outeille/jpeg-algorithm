@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 import scipy as sp
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, load_img
 from src.utils import decimal_to_binary, save_img
 
 def padding(img, mode="black"):
@@ -129,6 +129,8 @@ def compression(img):
 
     return "".join(map(str, np.concatenate(bitstream)))
 
+# import matplotlib.pyplot as plt
 # img = plt.imread("nyancat-patrick.png")
 # bitstream = compression(img)
-# save_img(bitstream, "compressed-nyancat.jpg")
+# bitstream = ["11000101", "0100", "11100100" , "0101" ,"100001" ,"0110" , "100011", "001" ,"0100", "001", "001", "100101", "001" , "0110", "000" ,"001", "000", "0110", "11110100", "000", "1010"]
+# bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
