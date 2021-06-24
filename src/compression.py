@@ -5,7 +5,7 @@ import scipy as sp
 from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, load_img
 from src.utils import decimal_to_binary, save_img
 
-def padding(img, mode="black"):
+def padding(img, unpadding_values, mode="black"):
     """
         Only work for 2d matrix.
     """
@@ -35,6 +35,9 @@ def padding(img, mode="black"):
         img = np.pad(img, [(ax1_top, ax1_bot), (ax2_left, ax2_right)], 'symmetric')
     else:
         raise ValueError("This mode doesn't exist")
+
+    for key, val in zip(unpadding_values.keys(), [ax1_top , ax1_bot, ax2_left, ax2_right]):
+        unpadding_values[key].append(val)
 
     return img
 
@@ -102,7 +105,6 @@ def entropy_coding(q_block, largest_range):
     final_encoding = huffman(zigzag_order, largest_range)
     return final_encoding
 
-
 def compression(img):
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")
@@ -113,10 +115,18 @@ def compression(img):
 
     img = np.transpose(img, (2, 0, 1))
     
+    # Need it during decompression (Mutable object)
+    unpadding_values = {
+        "ax1_top": [],
+        "ax1_bot": [],
+        "ax2_left": [], 
+        "ax2_right": []
+    }
+
     bitstream = []
     for channel in range(3):
         # Step 1: Block splitting
-        img_channel = padding(img[channel, ...], mode="replicate")
+        img_channel = padding(img[channel, ...], unpadding_values, mode="replicate")
 
         for block in block_splitting(img_channel):
             # Step 2: Discrete cosine transform (DCT)
@@ -127,7 +137,7 @@ def compression(img):
             final_encoding = entropy_coding(q_block, largest_range)
             bitstream.append(final_encoding)
 
-    return "".join(map(str, np.concatenate(bitstream)))
+    return "".join(map(str, np.concatenate(bitstream))), unpadding_values
 
 # import matplotlib.pyplot as plt
 # img = plt.imread("nyancat-patrick.png")

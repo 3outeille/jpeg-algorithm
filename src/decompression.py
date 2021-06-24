@@ -5,6 +5,25 @@ import scipy as sp
 from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
 from src.utils import binary_to_decimal
 
+def block_combination():
+    pass
+
+def unpadding(img, unpadding_values):
+    # n, m = img.shape
+    # # og_img = ?
+
+    # for channel in range(3):
+    #     ax1_top = unpadding_values["ax1_top"][channel]
+    #     ax1_bot = unpadding_values["ax1_bot"][channel]
+    #     ax2_left = unpadding_values["ax2_left"][channel]
+    #     ax2_right = unpadding_values["ax2_right"][channel]
+        
+    #     og_img = img[ax1_top:n-ax1_bot, ax2_left:m-ax2_right]
+
+    # return og_img
+    pass
+
+
 def dct_inv(dct_block):
     block = sp.fft.dct(dct_block, axis=0, type=3, norm="ortho")
     block = sp.fft.dct(block, axis=1, type=3, norm="ortho")
@@ -89,7 +108,7 @@ def entropy_coding_inv(bitstream, largest_range):
     q_block = zigzag_inv(final_encoding)
     return q_block
 
-def decompress(bistream):
+def decompress(bitstream, unpadding_values):
 
     # JPEG coefficient coding category 15
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
