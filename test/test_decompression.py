@@ -19,7 +19,7 @@ class TestHuffmanInv:
     def test_huffman_inv(self):
         result = huffman_inv(self.bitstream, self.largest_range)
         assert len(result) == len(self.expected)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected) == True
 
 class TestZigzagInv:
     
@@ -43,7 +43,7 @@ class TestZigzagInv:
 
     def test_zigzag_inv(self):
         result = zigzag_inv(self.final_encoding)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected) == True
 
 
 class TestEntropyCodingInv:
@@ -69,7 +69,7 @@ class TestEntropyCodingInv:
 
     def test_entropy_coding_inv(self):
         result = entropy_coding_inv(self.bitstream, self.largest_range)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected) == True
 
 class TestQuantizationInv:
 
@@ -103,7 +103,7 @@ class TestQuantizationInv:
 
     def test_quantization_inv(self):
         result = quantization_inv(self.q_block, Q_MAT)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected) == True
 
 class TestDctInv:
 
@@ -129,7 +129,7 @@ class TestDctInv:
             [70, 63, 67, 101, 122, 88, 60, 78],
             [71, 71, 64, 70, 80, 62, 56, 81],
             [75, 82, 67, 54, 63, 65, 66, 83],
-            [81, 94, 75, 54, 68, 81, 81, 8]
+            [81, 94, 75, 54, 68, 81, 81, 87]
         ])
 
     @classmethod
@@ -138,4 +138,4 @@ class TestDctInv:
 
     def test_dct_inv(self):
         result = dct_inv(self.dct_block)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected) == True

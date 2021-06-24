@@ -7,7 +7,12 @@ class TestPadding:
 
     @classmethod
     def setup_class(cls):
-        pass
+        cls.unpadding_values = {
+            "ax1_top": [],
+            "ax1_bot": [],
+            "ax2_left": [], 
+            "ax2_right": []
+        }
 
     @classmethod
     def teardown_class(cls):
@@ -16,49 +21,49 @@ class TestPadding:
     def test_0x0_image(self):
         img = np.zeros((0, 0))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (0, 0)
     
     def test_2x2_image(self):
         img = np.zeros((0, 0))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (0, 0)
 
     def test_8x8_image(self):
         img = np.ones((8, 8))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (8, 8)
 
     def test_9x9_image(self):
         img = np.ones((9, 9))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (16, 16)
 
     def test_11x3_image(self):
         img = np.ones((11, 3))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (16, 8)
 
     def test_3x11_image(self):
         img = np.ones((3, 11))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (8, 16)
     
     def test_16x3_image(self):
         img = np.ones((16, 3))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (16, 8)
 
     def test_3x16_image(self):
         img = np.ones((3, 16))
         for mode in ["black", "replicate"]:
-            new_img = padding(img, mode=mode)
+            new_img = padding(img, self.unpadding_values, mode=mode)
             assert new_img.shape == (8, 16)
 
 class TestDct:
@@ -93,7 +98,7 @@ class TestDct:
 
     def test_dct(self):
         result = dct(self.block)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected, atol=1e-2, rtol=0.) == True
 
 class TestQuantization:
     @classmethod
@@ -138,7 +143,7 @@ class TestQuantization:
 
     def test_quantization(self):
         result = quantization(self.dct_block, self.Q_MAT)
-        np.allclose(result, self.expected)
+        assert np.allclose(result, self.expected) == True
         assert result.dtype == self.expected.dtype
 
 class TestZigZag:
@@ -180,7 +185,7 @@ class TestZigZag:
 
     def test_zigzag(self):
         result = zigzag(self.quantized_block)
-        np.allclose(result, np.trim_zeros(self.expected, trim='b'))
+        assert np.allclose(result, np.trim_zeros(self.expected, trim='b')) == True
 
 class TestHuffman:
 
