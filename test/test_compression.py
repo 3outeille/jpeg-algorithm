@@ -191,9 +191,15 @@ class TestHuffman:
 
     @classmethod
     def setup_class(cls):
-        cls.zigzag_order = np.array([-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0])
         cls.largest_range = list(itertools.product(['0', '1'], repeat=15))
-        cls.expected = np.array(
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_huffman(self):
+        self.zigzag_order = np.array([-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0])
+        self.expected = np.array(
             ["11000101",
             "0100",
             "11100100",
@@ -217,11 +223,16 @@ class TestHuffman:
             "1010"]
         )
 
-    @classmethod
-    def teardown_class(cls):
-        pass
+        result = huffman(self.zigzag_order, self.largest_range)
+        assert len(result) == len(self.expected)
+        
+        for res, exp in zip(result, self.expected):
+            assert res == exp
+    
+    def test_huffman_ac_27_zeros(self):
+        self.zigzag_order = np.array([-26,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
+        self.expected = np.array(["11000101", "1111111101110", "11111110101", "1010"])
 
-    def test_huffman(self):
         result = huffman(self.zigzag_order, self.largest_range)
         assert len(result) == len(self.expected)
         
