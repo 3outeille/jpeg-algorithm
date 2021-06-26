@@ -34,6 +34,9 @@ def decimal_to_binary(x, largest_range):
             Only need to compute jpeg_coefficient_coding_categories once (category 15).
             We then take range from it.
     """
+    if x == 0:
+        return 0, "0"
+
     category = len(bin(x).partition('b')[-1])
     subset = largest_range[0:2**category]
     mid = len(subset) // 2
@@ -41,7 +44,7 @@ def decimal_to_binary(x, largest_range):
     return category, "".join(val)[-category:]
 
 # largest_range = list(itertools.product(['0', '1'], repeat=15))
-# print(retrieve_binary_rep(largest_range, -7))
+# print(decimal_to_binary(0, largest_range))
 
 def binary_to_decimal(binary, largest_range):
     CAT = len(binary)
@@ -120,7 +123,7 @@ HUFFMAN_AC_TABLE = {
     '0/8': "1111110110",
     '0/9': "1111111110000010",
     '0/10':"1111111110000011",
-    '1/1': "110",
+    '1/1': "1100",
     '1/2': "111001",
     '1/3': "1111001",
     '1/4': "111110110",
@@ -289,7 +292,7 @@ HUFFMAN_AC_TABLE_INV = {
     "1111110110": "0/8",
     "1111111110000010": "0/9",
     "1111111110000011": "0/10",
-    "110": "1/1",
+    "1100": "1/1",
     "111001": "1/2",
     "1111001": "1/3",
     "111110110": "1/4",

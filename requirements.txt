@@ -9,3 +9,4 @@ scipy
 plotly
 pandas
 ipywidgets
+imageio
