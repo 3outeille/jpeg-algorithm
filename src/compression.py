@@ -135,19 +135,16 @@ def compression(img):
         img_channel = padding(img[channel, ...], unpadding_values, mode="replicate")
 
         # Step 1: Block splitting
-        for i, block in enumerate(block_splitting(img_channel)):
+        for block in block_splitting(img_channel):
             # Step 2: Discrete cosine transform (DCT)
             dct_block = dct(block)
             # Step 3: Quantization + Round to nearest integer
             q_block = quantization(dct_block, Q_MAT)
             # Step 4: Zigzag + Huffman
-            if channel == 2 and i == 10:
-                print(q_block)
             final_encoding = entropy_coding(q_block, largest_range)
             bitstream.append(final_encoding)
 
     out = "".join(map(str, np.concatenate(bitstream)))
-    print(out)
     return out, unpadding_values
 
 # import matplotlib.pyplot as plt
@@ -157,14 +154,3 @@ def compression(img):
 # save_img(bitstream, "patrick-compresed.jpg")
 # bitstream = ["11000101", "0100", "11100100" , "0101" ,"100001" ,"0110" , "100011", "001" ,"0100", "001", "001", "100101", "001" , "0110", "000" ,"001", "000", "0110", "11110100", "000", "1010"]
 # bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
-
-# largest_range = list(itertools.product(['0', '1'], repeat=15))
-# zigzag_order = np.array([-26,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
-# expected = np.array(["11000101", "111111110111", "1111111010", "1010"])
-
-# result = huffman(zigzag_order, largest_range)
-# print(result)
-# assert len(result) == len(expected)
-
-# for res, exp in zip(result, expected):
-#     assert res == exp

@@ -1,8 +1,9 @@
 import itertools
 import numpy as np
+from numpy.lib.twodim_base import diag
 import scipy as sp
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, HUFFMAN_AC_TABLE
 from src.utils import binary_to_decimal
 
 def block_combination():
@@ -38,15 +39,17 @@ def quantization_inv(q_block, Q_MAT):
 
 def zigzag_inv(final_encoding):
     q_block = np.zeros((8, 8), dtype=int)
-    nb_square, diagonal, ptr, n = 0, 0, 0, len(final_encoding)
-    
-    while nb_square < n:
-        idx_i = [i for i in range(diagonal + 1)]
-        idx_j = [j for j in range(diagonal, -1, -1)]
+    diagonal, ptr, n = 0, 0, len(final_encoding)
+    a, b = 0, -1
+
+    while ptr < n:
+      
+        idx_i = [i for i in range(a, diagonal + 1)]
+        idx_j = [j for j in range(diagonal, b, -1)]
 
         for i, j in zip(idx_i, idx_j):
             if ptr < n:
-                if diagonal % 2 == 1:
+                if (diagonal - a) % 2 == 1:
                     q_block[i][j] = final_encoding[ptr]
                 else: # flip
                     q_block[j][i] = final_encoding[ptr]
@@ -54,8 +57,11 @@ def zigzag_inv(final_encoding):
             else:
                 break
 
-        nb_square += diagonal + 1
-        diagonal += 1
+        if diagonal < 7:
+            diagonal += 1
+        else:
+            a += 1
+            b += 1
 
     return q_block
 
@@ -77,15 +83,19 @@ def huffman_inv(bitstream, largest_range):
     end += CAT
     beg = end
 
+    EOB = "1010"
+
     while end < len(bitstream):
         # Retrieve AC coeff
-        while end < len(bitstream) + 1:
-            codeword = bitstream[beg:end]
-            if codeword in HUFFMAN_AC_TABLE_INV:
-                RUN_CAT = HUFFMAN_AC_TABLE_INV[codeword]
-                break
+        codeword = bitstream[beg:end]
+        while (codeword not in HUFFMAN_AC_TABLE_INV):
             end += 1
+            codeword = bitstream[beg:end]
 
+        if codeword == EOB:
+            break
+
+        RUN_CAT = HUFFMAN_AC_TABLE_INV[codeword]
         RUN, CAT = RUN_CAT.split("/")
         RUN, CAT = int(RUN), int(CAT)
 
@@ -108,16 +118,44 @@ def entropy_coding_inv(bitstream, largest_range):
     q_block = zigzag_inv(final_encoding)
     return q_block
 
+def bitstream_split(bitstream):
+    EOB = HUFFMAN_AC_TABLE["0/0"]
+    beg, ptr1, ptr2 = 0, 0, 0
+
+    while ptr2 < len(bitstream):
+        
+        if ptr2 % 4 == 0:
+            if bitstream[ptr1:ptr2] == EOB:
+                yield bitstream[beg:ptr2]
+                beg = ptr2
+            ptr1 = ptr2
+        
+        ptr2 += 1
+
+
 def decompress(bitstream, unpadding_values):
 
     # JPEG coefficient coding category 15
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
     
-    q_block = entropy_coding_inv(bitstream, largest_range)
-    dct_block = quantization_inv(q_block, Q_MAT)
-    block = dct_inv(dct_block)
-    print(block)
+    # for bits_seq in bitstream_split(bitstream):
+        # print(bits_seq)
+        # ?? = entropy_coding(bits_seq, largest_range)
+    
+    print(next(bitstream_split(bitstream)))
+    print(next(bitstream_split(bitstream)))
+
+    # final_encoding = huffman_inv(bitstream, largest_range)
+
+    # for chunk in range(0, len(final_encoding), 64):
+    #     q_block = zigzag_inv(final_encoding[chunk: chunk + 64])
+    #     print(q_block.shape)
+    #     raise Exception("")
+
+    # dct_block = quantization_inv(q_block, Q_MAT)
+    # block = dct_inv(dct_block)
+    # print(block)
     
 
 # bitstream = "11000101"

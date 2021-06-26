@@ -10,7 +10,7 @@ class TestHuffmanInv:
     def setup_class(cls):
         cls.bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
         cls.largest_range = list(itertools.product(['0', '1'], repeat=15))
-        cls.expected = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0]
+        cls.expected = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1]
 
     @classmethod
     def teardown_class(cls):
@@ -25,26 +25,43 @@ class TestZigzagInv:
     
     @classmethod
     def setup_class(cls):
-        cls.final_encoding = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1, 0]
-        cls.expected = np.array([
-            [-26, -3, -6, 2, 2, -1, 0, 0],
-            [0, -2, -4, 1, 1, 0, 0, 0],
-            [-3, 1, 5, -1, -1, 0, 0, 0],
-            [-3, 1, 2, -1, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0]]
-        )
+        pass
 
     @classmethod
     def teardown_class(cls):
         pass
 
     def test_zigzag_inv(self):
+        self.final_encoding = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1]
+        self.expected = np.array([
+            [-26, -3, -6,  2,  2, -1,  0,  0],
+            [  0, -2, -4,  1,  1,  0,  0,  0],
+            [ -3,  1,  5, -1, -1,  0,  0,  0],
+            [ -3,  1,  2, -1,  0,  0,  0,  0],
+            [  1,  0,  0,  0,  0,  0,  0,  0],
+            [  0,  0,  0,  0,  0,  0,  0,  0],
+            [  0,  0,  0,  0,  0,  0,  0,  0],
+            [  0,  0,  0,  0,  0,  0,  0,  0]]
+        )
+
         result = zigzag_inv(self.final_encoding)
         assert np.allclose(result, self.expected) == True
-
+    
+    def test_zigzag_inv_whole(self):
+        self.final_encoding = [-42, -1, -7, -6, 0, -38, 3, 4, -1, -3, -9, -2, 7, 0, 7, -4, 2, 0, 2, 1, 7, -3, 1, 5, 2, -2, 0, 0, 4, -1, 2, -1, -1, -2, 0, 1, 0, 1, -1, -1, -1, 1, 1, -3, 0, 0, -1, 0, -1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, -1, 0, -1, 0, -1]
+        self.expected = np.array([
+            [-42, -1, -38,  3,  7,  -4,  0,  4],
+            [ -7,  0,   4,  0,  2,   0, -1,  1],
+            [ -6, -1,   7,  0,  -2,  2,  1, -3],
+            [ -3, -2,   2,  2,  -1, -1,  0,  0],
+            [ -9,  1,   5, -1,  -1,  0,  0,  0],
+            [  7,  1,  -2, -1,  -1,  1,  1,  0],
+            [ -3,  0,   1,  0,   1,  0, -1, -1],
+            [  1,  0,  -1,  0,   1,  1,  0, -1]]
+        )
+        
+        result = zigzag_inv(self.final_encoding)
+        assert np.allclose(result, self.expected) == True
 
 class TestEntropyCodingInv:
     
