@@ -1,4 +1,5 @@
 import itertools
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
@@ -105,13 +106,6 @@ def huffman(zigzag_order, largest_range):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
-def entropy_coding(q_block, largest_range):
-    # Zigzag
-    zigzag_order = zigzag(q_block)
-    # Huffman
-    final_encoding = huffman(zigzag_order, largest_range)
-    return final_encoding
-
 def compression(img):
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")
@@ -141,7 +135,9 @@ def compression(img):
             # Step 3: Quantization + Round to nearest integer
             q_block = quantization(dct_block, Q_MAT)
             # Step 4: Zigzag + Huffman
-            final_encoding = entropy_coding(q_block, largest_range)
+            zigzag_order = zigzag(q_block)
+            final_encoding = huffman(zigzag_order, largest_range)
+            
             bitstream.append(final_encoding)
 
     out = "".join(map(str, np.concatenate(bitstream)))
