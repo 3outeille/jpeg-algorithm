@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import os
 
-from numpy.core.defchararray import rsplit
-
+from src.compression import *
 from src.decompression import *
 from src.utils import *
 
@@ -73,3 +72,24 @@ class TestSNR:
         out_img = self.img2
         result = snr(input_img, out_img)
         assert int(result) == 0
+
+class TestQualityFactorQuantization:
+    @classmethod
+    def setup_class(cls):
+        cls.input_img = plt.imread("./img/nyancat-patrick.png")[..., :3] * 255
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_quality_factor(self):
+        RMSE, SNR = [], []
+
+        for q in [25, 50, 75]:
+            bitstream, info_padding = compression(self.input_img, q=q)
+            out_img = decompression(bitstream, info_padding, q=q)
+            RMSE.append(rmse(self.input_img, out_img))
+            SNR.append(snr(self.input_img, out_img))
+
+        assert (RMSE[0] > RMSE[1] and RMSE[1] > RMSE[2]) == True
+        assert (SNR[0] < SNR[1] and SNR[1] < SNR[2]) == True
