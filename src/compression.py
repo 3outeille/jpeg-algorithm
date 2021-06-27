@@ -74,15 +74,26 @@ def dct(block):
     dct_block = sp.fft.dct(dct_block, axis=1, type=2, norm="ortho")
     return dct_block
 
-def quantization(dct_block, Q_MAT):
+def quantization(dct_block, Q_MAT, q=50):
     """
         Returns quantized macroblock.
 
         @Params:
         - dct_block: 8x8 macroblock with DCT applied to it.
         - Q_MAT: Hardcoded quantization matrix.
+        - q: quality factor of quantization matrix in range of [1, 100].
     """
-    q_block = np.divide(dct_block, Q_MAT)
+    if q < 1 or q > 100:
+        raise ValueError("Invalid q value. Should be in range of [1, 100]")
+    
+    # Compression factor quality.
+    if q < 50:
+        a = 5000/q
+    else:
+        a = 200 - 2*q
+    
+    Qq = np.floor((a*Q_MAT + 50) / 100)
+    q_block = np.divide(dct_block, Qq)
     q_block = np.rint(q_block).astype(int)
     return q_block
 
@@ -164,12 +175,13 @@ def huffman(zigzag_order, LARGEST_RANGE):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
-def compression(img, mode="replicate", channel_mode="rgb"):
+def compression(img, q=50, mode="replicate", channel_mode="rgb"):
     """
         Returns bitstream representing compressed image.
 
         @Params:
-        - img: input image of shape (n, m, c)
+        - img: input image of shape (n, m, c).
+        - q: quality factor of quantization matrix in range of [1, 100].
         - mode: padding mode.
     """
     if len(img.shape) != 3 or img.shape[2] != 3:
@@ -201,7 +213,7 @@ def compression(img, mode="replicate", channel_mode="rgb"):
             dct_block = dct(block)
             # Step 3: Quantization + Round to nearest integer
             mat = Q_MAT_UV if (channel != 0 and channel_mode == "yuv") else Q_MAT
-            q_block = quantization(dct_block, mat)
+            q_block = quantization(dct_block, mat, q)
             # Step 4: Zigzag + Huffman
             zigzag_order = zigzag(q_block)
             final_encoding = huffman(zigzag_order, LARGEST_RANGE)

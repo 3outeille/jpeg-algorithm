@@ -102,15 +102,26 @@ def zigzag_inv(zigzag_order):
 
     return q_block
 
-def quantization_inv(q_block, Q_MAT):
+def quantization_inv(q_block, Q_MAT, q=50):
     """
         Returns unquantized macroblock.
 
         @Params:
         - q_block: 8x8 quantized macroblock.
         - Q_MAT: Hardcoded quantization matrix.
+        - q: quality factor of quantization matrix in range of [1, 100].
     """
-    dct_block = np.multiply(q_block, Q_MAT)
+    if q < 1 or q > 100:
+        raise ValueError("Invalid q value. Should be in range of [1, 100]")
+
+    # Compression factor quality.
+    if q < 50:
+        a = 5000/q
+    else:
+        a = 200 - 2*q
+
+    Qq = np.floor((a*Q_MAT + 50) / 100)
+    dct_block = np.multiply(q_block, Qq)
     return dct_block
 
 def dct_inv(dct_block):
@@ -149,13 +160,18 @@ def unpadding(img, info_padding):
 
     return og_img
 
+<<<<<<< HEAD
 def decompression(bitstream, info_padding, channel_mode="rgb"):
+=======
+def decompression(bitstream, info_padding, q=50):
+>>>>>>> 1bd9f81b28fa3722d57246af0ed79de21357cdf2
     """
         Returns decompressed image from bitstream.
         
         @Params:
         - bitstream: string representing compressed image.
         - info_padding: dictionary with padding informations.
+        - q: quality factor of quantization matrix.
     """
     n, m, c = *info_padding["img_padded_shape"], 3
     frame = np.zeros((n, m, c))
@@ -171,7 +187,7 @@ def decompression(bitstream, info_padding, channel_mode="rgb"):
         # Step 1: Zigzag inverse.
         q_block = zigzag_inv(zigzag_order)
         # Step 2: Quantization inverse.
-        dct_block = quantization_inv(q_block, Q_MAT)
+        dct_block = quantization_inv(q_block, Q_MAT, q)
         # Step 3: DCT inverse.
         block = dct_inv(dct_block)
         # Step 4: Block combination
