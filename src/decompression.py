@@ -1,9 +1,10 @@
 import itertools
+import matplotlib.pyplot as plt
 import numpy as np
-from numpy.lib.twodim_base import diag
+from numpy.core.records import array
 import scipy as sp
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, HUFFMAN_AC_TABLE
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
 from src.utils import binary_to_decimal
 
 def block_combination():
@@ -65,10 +66,15 @@ def zigzag_inv(final_encoding):
 
     return q_block
 
-def huffman_inv(bitstream, largest_range):
+def huffman_inv(bitstream, largest_range, beg=0, end=0):
+
+    while end < len(bitstream):
+        final_encoding, beg, end = huffman_inv_aux(bitstream, largest_range, beg, end)
+        yield final_encoding
+
+def huffman_inv_aux(bitstream, largest_range, beg, end):
     final_encoding = []
 
-    beg, end = 0, 0
     # Retrieve DC coeff
     while end < len(bitstream):
         codeword = bitstream[beg:end]
@@ -93,6 +99,7 @@ def huffman_inv(bitstream, largest_range):
             codeword = bitstream[beg:end]
 
         if codeword == EOB:
+            beg = end
             break
 
         RUN_CAT = HUFFMAN_AC_TABLE_INV[codeword]
@@ -109,29 +116,7 @@ def huffman_inv(bitstream, largest_range):
         end += CAT
         beg = end
 
-    return final_encoding
-
-def entropy_coding_inv(bitstream, largest_range):
-    # Huffman inverse
-    final_encoding = huffman_inv(bitstream, largest_range)
-    # Zigzag inverse
-    q_block = zigzag_inv(final_encoding)
-    return q_block
-
-def bitstream_split(bitstream):
-    EOB = HUFFMAN_AC_TABLE["0/0"]
-    beg, ptr1, ptr2 = 0, 0, 0
-
-    while ptr2 < len(bitstream):
-        
-        if ptr2 % 4 == 0:
-            if bitstream[ptr1:ptr2] == EOB:
-                yield bitstream[beg:ptr2]
-                beg = ptr2
-            ptr1 = ptr2
-        
-        ptr2 += 1
-
+    return final_encoding, beg, end
 
 def decompress(bitstream, unpadding_values):
 
@@ -139,24 +124,45 @@ def decompress(bitstream, unpadding_values):
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
     
-    # for bits_seq in bitstream_split(bitstream):
-        # print(bits_seq)
-        # ?? = entropy_coding(bits_seq, largest_range)
+    result, channel = [], []
+
+    for i, final_encoding in enumerate(huffman_inv(bitstream, largest_range)):
+        q_block = zigzag_inv(final_encoding)
+        dct_block = quantization_inv(q_block, Q_MAT)
+        block = dct_inv(dct_block)
+        channel.append(block)
+
+        if (i + 1) % 4 == 0:
+            result.append(channel)
+            channel = []
     
-    print(next(bitstream_split(bitstream)))
-    print(next(bitstream_split(bitstream)))
+    result = np.array(result)
+    channel1 = result[:4, ...]
+    channel2 = result[4:8, ...]
+    channel3 = result[8:12, ...]
 
-    # final_encoding = huffman_inv(bitstream, largest_range)
+    print(channel1.shape)
+    print(channel2.shape)
+    print(channel3.shape)
 
-    # for chunk in range(0, len(final_encoding), 64):
-    #     q_block = zigzag_inv(final_encoding[chunk: chunk + 64])
-    #     print(q_block.shape)
-    #     raise Exception("")
+    channel1 = np.concatenate(channel1, axis=1)
+    channel1 = channel1.transpose(0, 2, 1)
+    channel1 = np.concatenate(channel1, axis=0)
+    plt.imshow(channel1)
+    plt.show()
 
-    # dct_block = quantization_inv(q_block, Q_MAT)
-    # block = dct_inv(dct_block)
-    # print(block)
-    
+    channel2 = np.concatenate(channel2, axis=1)
+    channel2 = channel2.transpose(0, 2, 1)
+    channel2 = np.concatenate(channel2, axis=0)
+    plt.imshow(channel2)
+    plt.show()
+
+    channel3 = np.concatenate(channel3, axis=1)
+    channel3 = channel3.transpose(0, 2, 1)
+    channel3 = np.concatenate(channel3, axis=0)
+    plt.imshow(channel3)
+    plt.show()
+
 
 # bitstream = "11000101"
 # bitstream = ["11000101", "0100", "11100100" , "0101" ,"100001" ,"0110" , "100011", "001" ,"0100", "001", "001", "100101", "001" , "0110", "000" ,"001", "000", "0110", "11110100", "000", "1010"]

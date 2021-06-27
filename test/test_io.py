@@ -22,5 +22,5 @@ class TestIO:
         assert len(self.bitstream) == len(load_bitstream)
         assert self.bitstream == load_bitstream
 
-        result = huffman_inv(load_bitstream, self.largest_range)
+        result = next(iter(huffman_inv(load_bitstream, self.largest_range)))
         assert np.allclose(result, self.expected) == True

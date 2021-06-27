@@ -17,7 +17,7 @@ class TestHuffmanInv:
         pass
 
     def test_huffman_inv(self):
-        result = huffman_inv(self.bitstream, self.largest_range)
+        result = next(iter(huffman_inv(self.bitstream, self.largest_range)))
         assert len(result) == len(self.expected)
         assert np.allclose(result, self.expected) == True
 
@@ -61,31 +61,6 @@ class TestZigzagInv:
         )
         
         result = zigzag_inv(self.final_encoding)
-        assert np.allclose(result, self.expected) == True
-
-class TestEntropyCodingInv:
-    
-    @classmethod
-    def setup_class(cls):
-        cls.bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
-        cls.largest_range = list(itertools.product(['0', '1'], repeat=15))
-        cls.expected = np.array([
-            [-26, -3, -6, 2, 2, -1, 0, 0],
-            [0, -2, -4, 1, 1, 0, 0, 0],
-            [-3, 1, 5, -1, -1, 0, 0, 0],
-            [-3, 1, 2, -1, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0]]
-        )
-
-    @classmethod
-    def teardown_class(cls):
-        pass
-
-    def test_entropy_coding_inv(self):
-        result = entropy_coding_inv(self.bitstream, self.largest_range)
         assert np.allclose(result, self.expected) == True
 
 class TestQuantizationInv:
