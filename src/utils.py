@@ -20,8 +20,9 @@ def snr(input_img, out_img):
         - input_img: input image.
         - out_img: image after compression + decompression.
     """
+    epsilon = 1e-10 # Add epsilon to avoid division by zero.
     error = input_img - out_img
-    return 10 * np.log(np.sum(input_img ** 2) / np.sum(error ** 2))
+    return 10 * np.log(np.sum(input_img ** 2) / (np.sum(error ** 2) + epsilon))
 
 def decimal_to_binary(x, LARGEST_RANGE):
     """
