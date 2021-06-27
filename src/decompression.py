@@ -2,8 +2,8 @@ import itertools
 import numpy as np
 import scipy as sp
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
-from src.utils import binary_to_decimal
+from utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
+from utils import binary_to_decimal
 
 def huffman_inv(bitstream, LARGEST_RANGE, beg=0, end=0):
     """
@@ -149,7 +149,7 @@ def unpadding(img, info_padding):
 
     return og_img
 
-def decompression(bitstream, info_padding):
+def decompression(bitstream, info_padding, channel_mode="rgb"):
     """
         Returns decompressed image from bitstream.
         

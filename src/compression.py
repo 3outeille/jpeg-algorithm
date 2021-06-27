@@ -1,8 +1,9 @@
 import itertools
 import numpy as np
 import scipy as sp
+import scipy.fft
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, LARGEST_RANGE
+from src.utils import Q_MAT, Q_MAT_UV, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, LARGEST_RANGE
 from src.utils import decimal_to_binary
 
 def padding(img, info_padding, mode="replicate"):
@@ -104,6 +105,26 @@ def zigzag(q_block):
 
     return np.trim_zeros(np.concatenate(res), trim='b')
 
+
+def rgb2yuv(img):
+    c, n, m = img.shape
+    Y = np.zeros((n, m))
+    U = np.zeros((n, m))
+    V = np.zeros((n, m))
+
+    for i in range(n):
+        for j in range(m):
+            Y[i][j] =  0.299 * img[0][i][j] + 0.587 * img[1][i][j] + 0.114 * img[2][i][j]
+            U[i][j] = -0.14713 * img[0][i][j] - 0.28886 * img[1][i][j] + 0.436 * img[2][i][j]
+            V[i][j] =  0.615 * img[0][i][j] - 0.51499 * img[1][i][j] - 0.10001 * img[2][i][j]
+            U[i][j] = max(U[i][j], 0.436) if U[i][j] > 0 else min(U[i][j], -0.436)
+            V[i][j] = max(U[i][j], 0.615) if U[i][j] > 0 else min(U[i][j], -0.615)
+
+    img[0] = Y
+    img[1] = U
+    img[2] = V
+    return img
+
 def huffman(zigzag_order, LARGEST_RANGE):
     """
         Returns encoded macroblock from zigzag ordering.
@@ -143,7 +164,7 @@ def huffman(zigzag_order, LARGEST_RANGE):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
-def compression(img, mode="replicate"):
+def compression(img, mode="replicate", channel_mode="rgb"):
     """
         Returns bitstream representing compressed image.
 
@@ -167,6 +188,9 @@ def compression(img, mode="replicate"):
 
     bitstream = []
 
+    if channel_mode == "yuv":
+        img = rgb2yuv(img)
+
     for channel in range(3):
         # Padd each image channel.
         img_channel = padding(img[channel, ...], info_padding, mode)
@@ -176,7 +200,8 @@ def compression(img, mode="replicate"):
             # Step 2: Discrete cosine transform (DCT)
             dct_block = dct(block)
             # Step 3: Quantization + Round to nearest integer
-            q_block = quantization(dct_block, Q_MAT)
+            mat = Q_MAT_UV if (channel != 0 and channel_mode == "yuv") else Q_MAT
+            q_block = quantization(dct_block, mat)
             # Step 4: Zigzag + Huffman
             zigzag_order = zigzag(q_block)
             final_encoding = huffman(zigzag_order, LARGEST_RANGE)

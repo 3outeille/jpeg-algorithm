@@ -104,6 +104,17 @@ Q_MAT = np.array([
     [72,  92, 95, 98, 112, 100, 103, 99]]
 )
 
+Q_MAT_UV = np.array([
+    [17, 18, 24, 47, 99, 99, 99, 99],
+    [18, 21, 26, 66, 99, 99, 99, 99],
+    [24, 26, 56, 99, 99, 99, 99, 99],
+    [47, 66, 99, 99, 99, 99, 99, 99],
+    [99, 99, 99, 99, 99, 99, 99, 99],
+    [99, 99, 99, 99, 99, 99, 99, 99],
+    [99, 99, 99, 99, 99, 99, 99, 99],
+    [99, 99, 99, 99, 99, 99, 99, 99]
+])
+
 # Following tables were taken from "Digital Image Processing" by Rafael C. Gonzalez & Richard E. Woods page 934.
 # http://sdeuoc.ac.in/sites/default/files/sde_videosDigital%20Image%20Processing%203rd%20ed.%20-%20R.%20Gonzalez%2C%20R.%20Woods-ilovepdf-compressed.pdf
 
