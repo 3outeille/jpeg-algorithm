@@ -44,7 +44,7 @@ def decimal_to_binary(x, largest_range):
     return category, "".join(val)[-category:]
 
 # largest_range = list(itertools.product(['0', '1'], repeat=15))
-# print(decimal_to_binary(0, largest_range))
+# print(decimal_to_binary(3, largest_range))
 
 def binary_to_decimal(binary, largest_range):
     CAT = len(binary)
@@ -64,6 +64,7 @@ def binary_to_decimal(binary, largest_range):
 # print(binary_to_decimal("", largest_range))
 
 def save_img(bitstream, filename):
+    #FIXME: Output file is too heavy.
     with open(filename, "wb") as f:
         f.write(bitstream.encode('latin-1'))
 

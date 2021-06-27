@@ -8,6 +8,7 @@ class TestHuffmanInv:
 
     @classmethod
     def setup_class(cls):
+        # -26 = 11000101
         cls.bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
         cls.largest_range = list(itertools.product(['0', '1'], repeat=15))
         cls.expected = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1]

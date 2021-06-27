@@ -1,12 +1,13 @@
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.core.shape_base import _block_slicing
 import scipy as sp
 
 from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, load_img
 from src.utils import decimal_to_binary, save_img
 
-def padding(img, unpadding_values, mode="black"):
+def padding(img, unpadding_values=None, mode="black"):
     """
         Only work for 2d matrix.
     """
@@ -14,10 +15,10 @@ def padding(img, unpadding_values, mode="black"):
     w = (img.shape[0] + 7) & (-8)
     h = (img.shape[1] + 7) & (-8)
 
-    # Smart padding -> Pad with image center in middle.
+    # # Smart padding -> Pad with image center in middle.
     delta_w = w - img.shape[0]
     delta_h = h - img.shape[1]
-    
+
     ax1_top, ax1_bot, ax2_left, ax2_right = 0, 0, 0, 0
 
     if delta_w != 0:
@@ -125,8 +126,10 @@ def compression(img):
     }
 
     bitstream = []
+
     for channel in range(3):
-        img_channel = padding(img[channel, ...], unpadding_values, mode="replicate")
+
+        img_channel = padding(img[channel], unpadding_values, mode="replicate")
 
         # Step 1: Block splitting
         for block in block_splitting(img_channel):

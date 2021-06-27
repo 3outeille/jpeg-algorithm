@@ -11,19 +11,17 @@ def block_combination():
     pass
 
 def unpadding(img, unpadding_values):
-    # n, m = img.shape
-    # # og_img = ?
+    n, m, channels = img.shape
 
-    # for channel in range(3):
-    #     ax1_top = unpadding_values["ax1_top"][channel]
-    #     ax1_bot = unpadding_values["ax1_bot"][channel]
-    #     ax2_left = unpadding_values["ax2_left"][channel]
-    #     ax2_right = unpadding_values["ax2_right"][channel]
+    for channel in range(channels):
+        ax1_top = unpadding_values["ax1_top"][channel]
+        ax1_bot = unpadding_values["ax1_bot"][channel]
+        ax2_left = unpadding_values["ax2_left"][channel]
+        ax2_right = unpadding_values["ax2_right"][channel]
         
-    #     og_img = img[ax1_top:n-ax1_bot, ax2_left:m-ax2_right]
+        og_img = img[ax1_top:n-ax1_bot, ax2_left:m-ax2_right]
 
-    # return og_img
-    pass
+    return og_img
 
 
 def dct_inv(dct_block):
@@ -71,9 +69,10 @@ def huffman_inv(bitstream, largest_range, beg=0, end=0):
     while end < len(bitstream):
         final_encoding, beg, end = huffman_inv_aux(bitstream, largest_range, beg, end)
         yield final_encoding
+    
 
 def huffman_inv_aux(bitstream, largest_range, beg, end):
-    final_encoding = []
+    zigzag_order = []
 
     # Retrieve DC coeff
     while end < len(bitstream):
@@ -84,9 +83,9 @@ def huffman_inv_aux(bitstream, largest_range, beg, end):
         end += 1
 
     dc_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
-    final_encoding.append(dc_coeff)
+    zigzag_order.append(dc_coeff)
     
-    end += CAT
+    end += max(CAT, 1)
     beg = end
 
     EOB = "1010"
@@ -109,14 +108,14 @@ def huffman_inv_aux(bitstream, largest_range, beg, end):
         ac_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
 
         for i in range(RUN):
-            final_encoding.append(0)
+            zigzag_order.append(0)
             
-        final_encoding.append(ac_coeff)
+        zigzag_order.append(ac_coeff)
 
-        end += CAT
+        end += max(CAT, 1)
         beg = end
 
-    return final_encoding, beg, end
+    return zigzag_order, beg, end
 
 def decompress(bitstream, img_shape, unpadding_values):
 
@@ -136,6 +135,8 @@ def decompress(bitstream, img_shape, unpadding_values):
         q_block = zigzag_inv(zigzag_order)
         dct_block = quantization_inv(q_block, Q_MAT)
         block = dct_inv(dct_block)
+
+        # Block combination
         result[row:row+8, col:col+8, channel] = block
 
         col += 8
@@ -145,36 +146,16 @@ def decompress(bitstream, img_shape, unpadding_values):
             col = 0
 
         if ((i + 1) % (nb_max_block_per_row * nb_max_block_per_col)) == 0:
-            plt.imshow(result[..., channel])
-            plt.show()
             channel += 1
             row, col = 0, 0
-        
-        
-    # Block combination
-    print(result.shape)
-    plt.imshow(result[..., 0])
+    
+    # print(result.shape)
+    # plt.imshow(result / 255)
+    # plt.show()
+    # Unpadding
+    img = unpadding(result, unpadding_values)
+    plt.imshow(img / 255)
     plt.show()
-    # print(img_shape)
-    # channel1 = result[:4, ...]
-    # channel2 = result[4:8, ...]
-
-    # print(channel1.shape)
-    # print(channel2.shape)
-
-    # channel1 = np.concatenate(channel1, axis=1)
-    # channel1 = channel1.transpose(0, 2, 1)
-    # channel1 = np.concatenate(channel1, axis=0)
-    # plt.imshow(channel1)
-    # plt.show()
-
-    # channel2 = np.concatenate(channel2, axis=1)
-    # channel2 = channel2.transpose(0, 2, 1)
-    # channel2 = np.concatenate(channel2, axis=0)
-    # plt.imshow(channel2)
-    # plt.show()
-
-    # Unpadding 
 
 
 # bitstream = "11000101"
