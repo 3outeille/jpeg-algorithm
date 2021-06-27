@@ -118,50 +118,63 @@ def huffman_inv_aux(bitstream, largest_range, beg, end):
 
     return final_encoding, beg, end
 
-def decompress(bitstream, unpadding_values):
+def decompress(bitstream, img_shape, unpadding_values):
 
     # JPEG coefficient coding category 15
     # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
     largest_range = list(itertools.product(['0', '1'], repeat=15))
     
-    result, channel = [], []
+    channel = []
+    result = np.zeros(img_shape)
 
-    for i, final_encoding in enumerate(huffman_inv(bitstream, largest_range)):
-        q_block = zigzag_inv(final_encoding)
+    nb_max_block_per_row = img_shape[0] // 8
+    nb_max_block_per_col = img_shape[1] // 8
+    row, col, channel = 0, 0, 0
+
+    for i, zigzag_order in enumerate(huffman_inv(bitstream, largest_range)):
+
+        q_block = zigzag_inv(zigzag_order)
         dct_block = quantization_inv(q_block, Q_MAT)
         block = dct_inv(dct_block)
-        channel.append(block)
+        result[row:row+8, col:col+8, channel] = block
 
-        if (i + 1) % 4 == 0:
-            result.append(channel)
-            channel = []
-    
-    result = np.array(result)
-    channel1 = result[:4, ...]
-    channel2 = result[4:8, ...]
-    channel3 = result[8:12, ...]
+        col += 8
 
-    print(channel1.shape)
-    print(channel2.shape)
-    print(channel3.shape)
+        if ((i + 1) % nb_max_block_per_col) == 0:
+            row += 8
+            col = 0
 
-    channel1 = np.concatenate(channel1, axis=1)
-    channel1 = channel1.transpose(0, 2, 1)
-    channel1 = np.concatenate(channel1, axis=0)
-    plt.imshow(channel1)
+        if ((i + 1) % (nb_max_block_per_row * nb_max_block_per_col)) == 0:
+            plt.imshow(result[..., channel])
+            plt.show()
+            channel += 1
+            row, col = 0, 0
+        
+        
+    # Block combination
+    print(result.shape)
+    plt.imshow(result[..., 0])
     plt.show()
+    # print(img_shape)
+    # channel1 = result[:4, ...]
+    # channel2 = result[4:8, ...]
 
-    channel2 = np.concatenate(channel2, axis=1)
-    channel2 = channel2.transpose(0, 2, 1)
-    channel2 = np.concatenate(channel2, axis=0)
-    plt.imshow(channel2)
-    plt.show()
+    # print(channel1.shape)
+    # print(channel2.shape)
 
-    channel3 = np.concatenate(channel3, axis=1)
-    channel3 = channel3.transpose(0, 2, 1)
-    channel3 = np.concatenate(channel3, axis=0)
-    plt.imshow(channel3)
-    plt.show()
+    # channel1 = np.concatenate(channel1, axis=1)
+    # channel1 = channel1.transpose(0, 2, 1)
+    # channel1 = np.concatenate(channel1, axis=0)
+    # plt.imshow(channel1)
+    # plt.show()
+
+    # channel2 = np.concatenate(channel2, axis=1)
+    # channel2 = channel2.transpose(0, 2, 1)
+    # channel2 = np.concatenate(channel2, axis=0)
+    # plt.imshow(channel2)
+    # plt.show()
+
+    # Unpadding 
 
 
 # bitstream = "11000101"
