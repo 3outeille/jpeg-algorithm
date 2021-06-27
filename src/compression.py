@@ -1,21 +1,24 @@
 import itertools
-import matplotlib.pyplot as plt
 import numpy as np
-from numpy.core.shape_base import _block_slicing
 import scipy as sp
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, load_img
-from src.utils import decimal_to_binary, save_img
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, LARGEST_RANGE
+from src.utils import decimal_to_binary
 
-def padding(img, unpadding_values=None, mode="black"):
+def padding(img, info_padding, mode="replicate"):
     """
-        Only work for 2d matrix.
+        Returns padded image where image is centered in middle.
+
+        @Params:
+        - img: input image of shape (n, m).
+        - info_padding: dictionary with padding informations.
+        - mode: padding mode.
     """
-    # Round up to nearest multiple of 8
+    # Round to upper-nearest multiple of 8.
     w = (img.shape[0] + 7) & (-8)
     h = (img.shape[1] + 7) & (-8)
 
-    # # Smart padding -> Pad with image center in middle.
+    # Compute padding for image to be centered in middle.
     delta_w = w - img.shape[0]
     delta_h = h - img.shape[1]
 
@@ -31,41 +34,67 @@ def padding(img, unpadding_values=None, mode="black"):
         if delta_h % 2 == 1:
             ax2_right = (delta_h//2) + 1
 
+    # Padding
     if mode == "black":
-        img = np.pad(img, [(ax1_top , ax1_bot), (ax2_left, ax2_right)], 'constant')
+        padded_img = np.pad(img, [(ax1_top , ax1_bot), (ax2_left, ax2_right)], 'constant')
     elif mode == "replicate":
-        img = np.pad(img, [(ax1_top, ax1_bot), (ax2_left, ax2_right)], 'symmetric')
+        padded_img = np.pad(img, [(ax1_top, ax1_bot), (ax2_left, ax2_right)], 'symmetric')
     else:
         raise ValueError("This mode doesn't exist")
 
-    for key, val in zip(unpadding_values.keys(), [ax1_top , ax1_bot, ax2_left, ax2_right]):
-        unpadding_values[key].append(val)
+    # Fill info_padding dictionary.
+    for key, val in zip(info_padding.keys(), [ax1_top , ax1_bot, ax2_left, ax2_right]):
+        info_padding[key].append(val)
 
-    return img
+    info_padding["img_padded_shape"] = padded_img.shape
+
+    return padded_img
 
 def block_splitting(img):
     """
-        8x8 sliding window over image
+        Yield 8x8 macroblock from image.
 
-        TODO: yield macro block later ?
+        @Params:
+        - img: input image of shape (n, m).
     """
     for i in range(0, img.shape[0], 8):
         for j in range(0, img.shape[1], 8):
             yield img[i:i+8, j:j+8]
 
 def dct(block):
+    """
+        Returns macroblock with DCT applied to it.
+
+        @Params:
+        - block: 8x8 macroblock.
+    """
     block =  block - 128
     dct_block = sp.fft.dct(block, axis=0, type=2, norm="ortho")
     dct_block = sp.fft.dct(dct_block, axis=1, type=2, norm="ortho")
     return dct_block
 
-def quantization(dct_block, Q):
-    q_block = np.divide(dct_block, Q)
-    return np.rint(q_block).astype(int)
+def quantization(dct_block, Q_MAT):
+    """
+        Returns quantized macroblock.
+
+        @Params:
+        - dct_block: 8x8 macroblock with DCT applied to it.
+        - Q_MAT: Hardcoded quantization matrix.
+    """
+    q_block = np.divide(dct_block, Q_MAT)
+    q_block = np.rint(q_block).astype(int)
+    return q_block
 
 def zigzag(q_block):
+    """
+        Returns zigzag ordering of q_block.
+
+        @Params:
+        - q_block: quantized 8x8 macroblock.
+    """
     n, m = q_block.shape
     res = [[] for i in range(n + m - 1)]
+
     for i in range(n):
         for j in range(m):
             if (i + j) % 2 == 0:
@@ -75,12 +104,19 @@ def zigzag(q_block):
 
     return np.trim_zeros(np.concatenate(res), trim='b')
 
-def huffman(zigzag_order, largest_range):
+def huffman(zigzag_order, LARGEST_RANGE):
+    """
+        Returns encoded macroblock from zigzag ordering.
+
+        @Params:
+        - zigzag_order: zigzag ordering of quantized block.
+        - LARGEST_RANGE: JPEG coefficient coding categories. Only category range 15.
+    """
     final_encoding = []
 
     # DC coeff encoding
     dc_coeff = zigzag_order[0]
-    CAT, binary = decimal_to_binary(dc_coeff, largest_range)
+    CAT, binary = decimal_to_binary(dc_coeff, LARGEST_RANGE)
     codeword = HUFFMAN_DC_TABLE[CAT]
     final_encoding.append(codeword + binary)
 
@@ -97,7 +133,7 @@ def huffman(zigzag_order, largest_range):
             final_encoding.append(codeword + "0")
             RUN -= 15
         
-        CAT, binary = decimal_to_binary(ac_coeff, largest_range)
+        CAT, binary = decimal_to_binary(ac_coeff, LARGEST_RANGE)
         codeword = HUFFMAN_AC_TABLE[f"{RUN}/{CAT}"]
         final_encoding.append(codeword + binary)
         RUN = 0
@@ -107,29 +143,33 @@ def huffman(zigzag_order, largest_range):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
-def compression(img):
+def compression(img, mode="replicate"):
+    """
+        Returns bitstream representing compressed image.
+
+        @Params:
+        - img: input image of shape (n, m, c)
+        - mode: padding mode.
+    """
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")
     
-    # JPEG coefficient coding category 15
-    # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
-    largest_range = list(itertools.product(['0', '1'], repeat=15))
-
     img = np.transpose(img, (2, 0, 1))
     
-    # Need it during decompression (Mutable object)
-    unpadding_values = {
+    # Padding information needed during decompression (mutable object).
+    info_padding = {
         "ax1_top": [],
         "ax1_bot": [],
         "ax2_left": [], 
-        "ax2_right": []
+        "ax2_right": [],
+        "img_padded_shape": None
     }
 
     bitstream = []
 
     for channel in range(3):
-
-        img_channel = padding(img[channel], unpadding_values, mode="replicate")
+        # Padd each image channel.
+        img_channel = padding(img[channel, ...], info_padding, mode)
 
         # Step 1: Block splitting
         for block in block_splitting(img_channel):
@@ -139,17 +179,9 @@ def compression(img):
             q_block = quantization(dct_block, Q_MAT)
             # Step 4: Zigzag + Huffman
             zigzag_order = zigzag(q_block)
-            final_encoding = huffman(zigzag_order, largest_range)
+            final_encoding = huffman(zigzag_order, LARGEST_RANGE)
             
             bitstream.append(final_encoding)
 
     out = "".join(map(str, np.concatenate(bitstream)))
-    return out, unpadding_values
-
-# import matplotlib.pyplot as plt
-# img = plt.imread("nyancat-patrick.png")
-# bitstream, unpaddi_values = compression(img)
-# print(len(bitstream))
-# save_img(bitstream, "patrick-compresed.jpg")
-# bitstream = ["11000101", "0100", "11100100" , "0101" ,"100001" ,"0110" , "100011", "001" ,"0100", "001", "001", "100101", "001" , "0110", "000" ,"001", "000", "0110", "11110100", "000", "1010"]
-# bitstream = "1100010101001110010001011000010110100011001010000100110010100101100000010000110111101000001010"
+    return out, info_padding

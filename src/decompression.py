@@ -1,77 +1,29 @@
 import itertools
-import matplotlib.pyplot as plt
 import numpy as np
-from numpy.core.records import array
 import scipy as sp
 
-from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV
+from src.utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
 from src.utils import binary_to_decimal
 
-def block_combination():
-    pass
+def huffman_inv(bitstream, LARGEST_RANGE, beg=0, end=0):
+    """
+        Yield macroblock in zigzag order from input bistream.
 
-def unpadding(img, unpadding_values):
-    n, m, channels = img.shape
-
-    for channel in range(channels):
-        ax1_top = unpadding_values["ax1_top"][channel]
-        ax1_bot = unpadding_values["ax1_bot"][channel]
-        ax2_left = unpadding_values["ax2_left"][channel]
-        ax2_right = unpadding_values["ax2_right"][channel]
-        
-        og_img = img[ax1_top:n-ax1_bot, ax2_left:m-ax2_right]
-
-    return og_img
-
-
-def dct_inv(dct_block):
-    block = sp.fft.dct(dct_block, axis=0, type=3, norm="ortho")
-    block = sp.fft.dct(block, axis=1, type=3, norm="ortho")
-    block = block + 128
-    block = np.rint(block).astype(int)
-    block = np.clip(block, 0, 255)
-    return block
-
-def quantization_inv(q_block, Q_MAT):
-    dct_block = np.multiply(q_block, Q_MAT)
-    return dct_block
-
-def zigzag_inv(final_encoding):
-    q_block = np.zeros((8, 8), dtype=int)
-    diagonal, ptr, n = 0, 0, len(final_encoding)
-    a, b = 0, -1
-
-    while ptr < n:
-      
-        idx_i = [i for i in range(a, diagonal + 1)]
-        idx_j = [j for j in range(diagonal, b, -1)]
-
-        for i, j in zip(idx_i, idx_j):
-            if ptr < n:
-                if (diagonal - a) % 2 == 1:
-                    q_block[i][j] = final_encoding[ptr]
-                else: # flip
-                    q_block[j][i] = final_encoding[ptr]
-                ptr += 1
-            else:
-                break
-
-        if diagonal < 7:
-            diagonal += 1
-        else:
-            a += 1
-            b += 1
-
-    return q_block
-
-def huffman_inv(bitstream, largest_range, beg=0, end=0):
-
+        @Params:
+        - bitstream: string representing compressed image.
+        - LARGEST_RANGE: JPEG coefficient coding categories. Only category range 15.
+    """
     while end < len(bitstream):
-        final_encoding, beg, end = huffman_inv_aux(bitstream, largest_range, beg, end)
-        yield final_encoding
-    
+        final_encoding, beg, end = huffman_inv_aux(bitstream, LARGEST_RANGE, beg, end)
+        yield final_encoding   
 
-def huffman_inv_aux(bitstream, largest_range, beg, end):
+def huffman_inv_aux(bitstream, LARGEST_RANGE, beg, end):
+    """
+        Returns macroblock in zigzag order from input bistream.
+        @Params:
+        - bitstream: string representing compressed image.
+        - LARGEST_RANGE: JPEG coefficient coding categories. Only category range 15.
+    """
     zigzag_order = []
 
     # Retrieve DC coeff
@@ -82,7 +34,7 @@ def huffman_inv_aux(bitstream, largest_range, beg, end):
             break
         end += 1
 
-    dc_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
+    dc_coeff = binary_to_decimal(bitstream[end: end + CAT], LARGEST_RANGE)
     zigzag_order.append(dc_coeff)
     
     end += max(CAT, 1)
@@ -105,7 +57,7 @@ def huffman_inv_aux(bitstream, largest_range, beg, end):
         RUN, CAT = RUN_CAT.split("/")
         RUN, CAT = int(RUN), int(CAT)
 
-        ac_coeff = binary_to_decimal(bitstream[end: end + CAT], largest_range)
+        ac_coeff = binary_to_decimal(bitstream[end: end + CAT], LARGEST_RANGE)
 
         for i in range(RUN):
             zigzag_order.append(0)
@@ -117,51 +69,126 @@ def huffman_inv_aux(bitstream, largest_range, beg, end):
 
     return zigzag_order, beg, end
 
-def decompress(bitstream, img_shape, unpadding_values):
+def zigzag_inv(zigzag_order):
+    """
+        Returns quantized block from zigzag ordered block.
+        @Params:
+        - zigzag_order: zigzag ordered block.
+    """
+    q_block = np.zeros((8, 8), dtype=int)
+    diagonal, ptr, n = 0, 0, len(zigzag_order)
+    a, b = 0, -1
 
-    # JPEG coefficient coding category 15
-    # FIXME: Maybe precomputed it like Q_MAT, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE ?
-    largest_range = list(itertools.product(['0', '1'], repeat=15))
-    
-    channel = []
-    result = np.zeros(img_shape)
+    while ptr < n:
+      
+        idx_i = [i for i in range(a, diagonal + 1)]
+        idx_j = [j for j in range(diagonal, b, -1)]
 
-    nb_max_block_per_row = img_shape[0] // 8
-    nb_max_block_per_col = img_shape[1] // 8
+        for i, j in zip(idx_i, idx_j):
+            if ptr < n:
+                if (diagonal - a) % 2 == 1:
+                    q_block[i][j] = zigzag_order[ptr]
+                else: # flip
+                    q_block[j][i] = zigzag_order[ptr]
+                ptr += 1
+            else:
+                break
+
+        if diagonal < 7:
+            diagonal += 1
+        else:
+            a += 1
+            b += 1
+
+    return q_block
+
+def quantization_inv(q_block, Q_MAT):
+    """
+        Returns unquantized macroblock.
+
+        @Params:
+        - q_block: 8x8 quantized macroblock.
+        - Q_MAT: Hardcoded quantization matrix.
+    """
+    dct_block = np.multiply(q_block, Q_MAT)
+    return dct_block
+
+def dct_inv(dct_block):
+    """
+        Returns macroblock with DCT not applied to it.
+
+        @Params:
+        - dct_block: 8x8 macroblock with DCT applied to it.
+    """
+
+    block = sp.fft.dct(dct_block, axis=0, type=3, norm="ortho")
+    block = sp.fft.dct(block, axis=1, type=3, norm="ortho")
+    block = block + 128
+    block = np.rint(block).astype(int)
+    block = np.clip(block, 0, 255)
+    return block
+
+def unpadding(img, info_padding):
+    """
+        Returns unpadded image.
+
+        @Params:
+        - img: input image of shape (n, m).
+        - info_padding: dictionary with padding informations.
+    """
+    n, m, channels = img.shape
+
+    for channel in range(channels):
+        ax1_top = info_padding["ax1_top"][channel]
+        ax1_bot = info_padding["ax1_bot"][channel]
+        ax2_left = info_padding["ax2_left"][channel]
+        ax2_right = info_padding["ax2_right"][channel]
+        
+        # Remove padding.
+        og_img = img[ax1_top:n-ax1_bot, ax2_left:m-ax2_right]
+
+    return og_img
+
+def decompression(bitstream, info_padding):
+    """
+        Returns decompressed image from bitstream.
+        
+        @Params:
+        - bitstream: string representing compressed image.
+        - info_padding: dictionary with padding informations.
+    """
+    n, m, c = *info_padding["img_padded_shape"], 3
+    frame = np.zeros((n, m, c))
+
+    nb_max_block_per_row = n // 8
+    nb_max_block_per_col = m // 8
+    nb_total_block_per_channel = nb_max_block_per_row * nb_max_block_per_col
     row, col, channel = 0, 0, 0
 
-    for i, zigzag_order in enumerate(huffman_inv(bitstream, largest_range)):
+    # Step 1: Huffman inverse.
+    for nb_block, zigzag_order in enumerate(huffman_inv(bitstream, LARGEST_RANGE)):
 
+        # Step 1: Zigzag inverse.
         q_block = zigzag_inv(zigzag_order)
+        # Step 2: Quantization inverse.
         dct_block = quantization_inv(q_block, Q_MAT)
+        # Step 3: DCT inverse.
         block = dct_inv(dct_block)
-
-        # Block combination
-        result[row:row+8, col:col+8, channel] = block
+        # Step 4: Block combination
+        frame[row:row+8, col:col+8, channel] = block
 
         col += 8
 
-        if ((i + 1) % nb_max_block_per_col) == 0:
+        # Go to next row.
+        if ((nb_block + 1) % nb_max_block_per_col) == 0:
             row += 8
             col = 0
 
-        if ((i + 1) % (nb_max_block_per_row * nb_max_block_per_col)) == 0:
+        # Go to next channel.
+        if ((nb_block + 1) % nb_total_block_per_channel) == 0:
             channel += 1
             row, col = 0, 0
     
-    # print(result.shape)
-    # plt.imshow(result / 255)
-    # plt.show()
-    # Unpadding
-    img = unpadding(result, unpadding_values)
-    plt.imshow(img / 255)
-    plt.show()
-
-
-# bitstream = "11000101"
-# bitstream = ["11000101", "0100", "11100100" , "0101" ,"100001" ,"0110" , "100011", "001" ,"0100", "001", "001", "100101", "001" , "0110", "000" ,"001", "000", "0110", "11110100", "000", "1010"]
-#             "11000101 | 100111010001011000010110100011101000100110010100101100000011101111010001010"
-# bitstream = "11000101 | 0100 | 11100100 | 0101 | 100001 | 0110 | 100011 | 001 | 0100 | 001 | 001 | 100101 | 001 | 0110 | 000 | 001 | 000 | 0110 | 11110100 | 000 |  1010"
-#              0      7   8  11  12     19 20  23 24    29 30  33 34    39 40 42 43  46 47 49 50 52 53    58 59 61 62  65 66 68 69 71 72 74 75  78 79      86 87  89 90  93     
-#               -26        -3       0 -3     -2      -6      2       -4      1     -3     1     1      5       1      2     -1    1    -1     2     00000-1    -1      EOB
-# decompress(bitstream)
+    # Unpadding.
+    img = unpadding(frame, info_padding)
+    return img
