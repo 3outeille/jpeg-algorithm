@@ -29,5 +29,5 @@ def main(img_path):
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/patrick-color.png")
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/nyancat-patrick.png")
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/pixil-frame.png")
-main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/pikachu.png")
+# main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/pikachu.png")
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/gradient.png")

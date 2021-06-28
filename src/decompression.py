@@ -2,8 +2,8 @@ import itertools
 import numpy as np
 import scipy as sp
 
-from utils import Q_MAT, Q_MAT_UV, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
-from utils import binary_to_decimal
+from src.utils import Q_MAT, Q_MAT_UV, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
+from src.utils import binary_to_decimal
 
 def huffman_inv(bitstream, LARGEST_RANGE, beg=0, end=0):
     """

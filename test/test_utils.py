@@ -32,7 +32,7 @@ class TestRMSE:
     @classmethod
     def setup_class(cls):
         cls.img1 = plt.imread("./img/nyancat-patrick.png")[..., :3] * 255
-        cls.img2 = np.random.uniform(0., 1., (cls.img1.shape))
+        cls.img2 = np.random.uniform(0., 1., (cls.img1.shape)) * 255
 
     @classmethod
     def teardown_class(cls):
@@ -48,14 +48,14 @@ class TestRMSE:
         input_img = self.img1
         out_img = self.img2
         result = rmse(input_img, out_img)
-        assert result > 100
+        assert result > 90
 
 class TestSNR:
     
     @classmethod
     def setup_class(cls):
         cls.img1 = plt.imread("./img/nyancat-patrick.png")[..., :3] * 255
-        cls.img2 = np.random.uniform(0., 1., (cls.img1.shape))
+        cls.img2 = np.random.uniform(0., 1., (cls.img1.shape)) * 255
 
     @classmethod
     def teardown_class(cls):
@@ -71,7 +71,7 @@ class TestSNR:
         input_img = self.img1
         out_img = self.img2
         result = snr(input_img, out_img)
-        assert int(result) == 0
+        assert int(result) < 15
 
 class TestQualityFactorQuantization:
     @classmethod
