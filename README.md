@@ -1,21 +1,4 @@
 # Setup
 
-- Create a virtual environment in the root folder using [virtualenv][virtualenv] and activate it.
-
-```bash
-# On Linux terminal, using virtualenv.
-virtualenv codo-env
-# Activate it.
-source codo-env/bin/activate
-pip install -r requirements.txt
-python setup.py clean
-```
-
-- Add `codo-env` to jupyter notebook:
-```
-python -m ipykernel install --user --name=codo-env
-```
-- Remove `codo-env` from jupyter notebook:
-```
-jupyter kernelspec uninstall codo-env
-```
+- Before running notebook, make sure to run `./install.sh` at the root of project.
+- Once you are done, run `./uninstall.sh`.
