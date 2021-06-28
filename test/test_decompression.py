@@ -33,7 +33,7 @@ class TestZigzagInv:
         pass
 
     def test_zigzag_inv(self):
-        self.final_encoding = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1]
+        self.zigzag_order = [-26, -3, 0, -3, -2, -6, 2, -4, 1, -3, 1, 1, 5, 1, 2, -1, 1, -1, 2, 0, 0, 0, 0, 0, -1, -1]
         self.expected = np.array([
             [-26, -3, -6,  2,  2, -1,  0,  0],
             [  0, -2, -4,  1,  1,  0,  0,  0],
@@ -45,11 +45,11 @@ class TestZigzagInv:
             [  0,  0,  0,  0,  0,  0,  0,  0]]
         )
 
-        result = zigzag_inv(self.final_encoding)
+        result = zigzag_inv(self.zigzag_order)
         assert np.allclose(result, self.expected) == True
     
     def test_zigzag_inv_whole(self):
-        self.final_encoding = [-42, -1, -7, -6, 0, -38, 3, 4, -1, -3, -9, -2, 7, 0, 7, -4, 2, 0, 2, 1, 7, -3, 1, 5, 2, -2, 0, 0, 4, -1, 2, -1, -1, -2, 0, 1, 0, 1, -1, -1, -1, 1, 1, -3, 0, 0, -1, 0, -1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, -1, 0, -1, 0, -1]
+        self.zigzag_order = [-42, -1, -7, -6, 0, -38, 3, 4, -1, -3, -9, -2, 7, 0, 7, -4, 2, 0, 2, 1, 7, -3, 1, 5, 2, -2, 0, 0, 4, -1, 2, -1, -1, -2, 0, 1, 0, 1, -1, -1, -1, 1, 1, -3, 0, 0, -1, 0, -1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, -1, 0, -1, 0, -1]
         self.expected = np.array([
             [-42, -1, -38,  3,  7,  -4,  0,  4],
             [ -7,  0,   4,  0,  2,   0, -1,  1],
@@ -61,7 +61,7 @@ class TestZigzagInv:
             [  1,  0,  -1,  0,   1,  1,  0, -1]]
         )
         
-        result = zigzag_inv(self.final_encoding)
+        result = zigzag_inv(self.zigzag_order)
         assert np.allclose(result, self.expected) == True
 
 class TestQuantizationInv:
