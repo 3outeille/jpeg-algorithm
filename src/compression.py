@@ -116,7 +116,6 @@ def zigzag(q_block):
 
     return np.trim_zeros(np.concatenate(res), trim='b')
 
-
 def rgb2yuv(img):
     c, n, m = img.shape
     Y = np.zeros((n, m))
@@ -126,12 +125,17 @@ def rgb2yuv(img):
     for i in range(n):
         for j in range(m):
             Y[i][j] =  0.299 * img[0][i][j] + 0.587 * img[1][i][j] + 0.114 * img[2][i][j]
-            # U[i][j] = int(-0.14713 * img[0][i][j] - 0.28886 * img[1][i][j] + 0.436 * img[2][i][j])
-            # V[i][j] = int(0.615 * img[0][i][j] - 0.51499 * img[1][i][j] - 0.10001 * img[2][i][j])
-            U[i][j] = (img[2][i][j] - Y[i][j]) / 2.0321
-            V[i][j] = (img[0][i][j] - Y[i][j]) / 1.1398
-            # U[i][j] = min(U[i][j], 0.436 * 255) if U[i][j] > 0 else max(U[i][j], -0.436 * 255)
-            # V[i][j] = min(U[i][j], 0.615 * 255) if U[i][j] > 0 else max(U[i][j], -0.615 * 255)
+            
+            # Method 1:
+            # U[i][j] = (img[2][i][j] - Y[i][j]) / 2.0321
+            # V[i][j] = (img[0][i][j] - Y[i][j]) / 1.1398
+
+            # Method 2:
+            U[i][j] = -0.14713 * img[0][i][j] - 0.28886 * img[1][i][j] + 0.436 * img[2][i][j]
+            V[i][j] = 0.615 * img[0][i][j] - 0.51499 * img[1][i][j] - 0.10001 * img[2][i][j]
+
+            U[i][j] = min(U[i][j], 0.436 * 255) if U[i][j] > 0 else max(U[i][j], -0.436 * 255)
+            V[i][j] = min(V[i][j], 0.615 * 255) if V[i][j] > 0 else max(V[i][j], -0.615 * 255)
 
 
     img[0] = Y
@@ -220,7 +224,7 @@ def compression(img, q=50, mode="replicate", channel_mode="rgb"):
             # Step 4: Zigzag + Huffman
             zigzag_order = zigzag(q_block)
             final_encoding = huffman(zigzag_order, LARGEST_RANGE)
-            
+
             bitstream.append(final_encoding)
 
     out = "".join(map(str, np.concatenate(bitstream)))
