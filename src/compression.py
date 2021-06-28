@@ -74,7 +74,7 @@ def dct(block):
     dct_block = sp.fft.dct(dct_block, axis=1, type=2, norm="ortho")
     return dct_block
 
-def quantization(dct_block, Q_MAT, q=50):
+def quantization(dct_block, mat, q=50):
     """
         Returns quantized macroblock.
 
@@ -92,7 +92,7 @@ def quantization(dct_block, Q_MAT, q=50):
     else:
         a = 200 - 2*q
     
-    Qq = np.floor((a*Q_MAT + 50) / 100)
+    Qq = np.floor((a*mat+ 50) / 100)
     q_block = np.divide(dct_block, Qq)
     q_block = np.rint(q_block).astype(int)
     return q_block
@@ -126,10 +126,13 @@ def rgb2yuv(img):
     for i in range(n):
         for j in range(m):
             Y[i][j] =  0.299 * img[0][i][j] + 0.587 * img[1][i][j] + 0.114 * img[2][i][j]
-            U[i][j] = -0.14713 * img[0][i][j] - 0.28886 * img[1][i][j] + 0.436 * img[2][i][j]
-            V[i][j] =  0.615 * img[0][i][j] - 0.51499 * img[1][i][j] - 0.10001 * img[2][i][j]
-            U[i][j] = max(U[i][j], 0.436) if U[i][j] > 0 else min(U[i][j], -0.436)
-            V[i][j] = max(U[i][j], 0.615) if U[i][j] > 0 else min(U[i][j], -0.615)
+            # U[i][j] = int(-0.14713 * img[0][i][j] - 0.28886 * img[1][i][j] + 0.436 * img[2][i][j])
+            # V[i][j] = int(0.615 * img[0][i][j] - 0.51499 * img[1][i][j] - 0.10001 * img[2][i][j])
+            U[i][j] = (img[2][i][j] - Y[i][j]) / 2.0321
+            V[i][j] = (img[0][i][j] - Y[i][j]) / 1.1398
+            # U[i][j] = min(U[i][j], 0.436 * 255) if U[i][j] > 0 else max(U[i][j], -0.436 * 255)
+            # V[i][j] = min(U[i][j], 0.615 * 255) if U[i][j] > 0 else max(U[i][j], -0.615 * 255)
+
 
     img[0] = Y
     img[1] = U
