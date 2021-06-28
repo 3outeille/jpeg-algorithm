@@ -69,7 +69,7 @@ def dct(block):
         @Params:
         - block: 8x8 macroblock.
     """
-    block =  block - 128
+    block = block - 128
     dct_block = sp.fft.dct(block, axis=0, type=2, norm="ortho")
     dct_block = sp.fft.dct(dct_block, axis=1, type=2, norm="ortho")
     return dct_block
@@ -92,9 +92,9 @@ def quantization(dct_block, mat, q=50):
     else:
         a = 200 - 2*q
     
-    Qq = np.floor((a*mat+ 50) / 100)
+    Qq = np.floor((a*mat + 50) / 100)
     q_block = np.divide(dct_block, Qq)
-    q_block = np.rint(q_block).astype(int)
+    q_block = np.rint(q_block).astype(np.int64)
     return q_block
 
 def zigzag(q_block):
@@ -153,8 +153,8 @@ def huffman(zigzag_order, LARGEST_RANGE):
     """
     final_encoding = []
 
-    # DC coeff encoding
-    dc_coeff = zigzag_order[0]
+    # DC coeff encoding    
+    dc_coeff = zigzag_order[0] if len(zigzag_order) > 0 else 0
     CAT, binary = decimal_to_binary(dc_coeff, LARGEST_RANGE)
     codeword = HUFFMAN_DC_TABLE[CAT]
     final_encoding.append(codeword + binary)

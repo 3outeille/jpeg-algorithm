@@ -7,11 +7,14 @@ import matplotlib.pyplot as plt
 
 def main(img_path):
     
-    # quality factor of quantization matrix.
-    q = 50
+    # quality factor of 2quantization matrix.
+    q = 10
 
     input_img = plt.imread(img_path)[..., :3] * 255
     print(input_img.shape)
+
+    # plt.imshow(input_img / 255)
+    # plt.show()
 
     t0 = time.time()
     bitstream, info_padding = compression(input_img, q=q, channel_mode="rgb")
@@ -26,7 +29,7 @@ def main(img_path):
     print(f"RMSE = {rmse(input_img, out_img)}")
     print(f"SNR = {snr(input_img, out_img)}")
 
-# main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/patrick-color.png")
+main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/patrick-color.png")
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/nyancat-patrick.png")
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/pixil-frame.png")
 # main("/home/sphird/Documents/codo-jpeg-algorithm/src/img/pikachu.png")
