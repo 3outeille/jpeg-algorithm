@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 import scipy as sp
 
-from utils import Q_MAT, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
+from utils import Q_MAT, Q_MAT_UV, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
 from utils import binary_to_decimal
 
 def huffman_inv(bitstream, LARGEST_RANGE, beg=0, end=0):
@@ -102,7 +102,7 @@ def zigzag_inv(zigzag_order):
 
     return q_block
 
-def quantization_inv(q_block, Q_MAT, q=50):
+def quantization_inv(q_block, mat, q=50):
     """
         Returns unquantized macroblock.
 
@@ -120,7 +120,7 @@ def quantization_inv(q_block, Q_MAT, q=50):
     else:
         a = 200 - 2*q
 
-    Qq = np.floor((a*Q_MAT + 50) / 100)
+    Qq = np.floor((a*mat + 50) / 100)
     dct_block = np.multiply(q_block, Qq)
     return dct_block
 
@@ -160,11 +160,25 @@ def unpadding(img, info_padding):
 
     return og_img
 
-<<<<<<< HEAD
-def decompression(bitstream, info_padding, channel_mode="rgb"):
-=======
-def decompression(bitstream, info_padding, q=50):
->>>>>>> 1bd9f81b28fa3722d57246af0ed79de21357cdf2
+
+def yuv2rgb(img):
+    c, n, m = img.shape
+    R = np.zeros((n, m))
+    G = np.zeros((n, m))
+    B = np.zeros((n, m))
+
+    for i in range(n):
+        for j in range(m):
+            R[i][j] = int(min(255, 1 * img[0][i][j] + 1.13983 * img[2][i][j]))
+            G[i][j] = int(min(255, 1 * img[0][i][j] - 0.39465 * img[1][i][j] - 0.58060 * img[2][i][j]))
+            B[i][j] = int(min(255, 1 * img[0][i][j] + 2.03211 * img[1][i][j] ))
+
+    img[0] = R
+    img[1] = G
+    img[2] = B
+    return img
+
+def decompression(bitstream, info_padding, q=50, channel_mode="rgb"):
     """
         Returns decompressed image from bitstream.
         
@@ -186,8 +200,9 @@ def decompression(bitstream, info_padding, q=50):
 
         # Step 1: Zigzag inverse.
         q_block = zigzag_inv(zigzag_order)
+        mat = Q_MAT_UV if (channel != 0 and channel_mode == "yuv") else Q_MAT
         # Step 2: Quantization inverse.
-        dct_block = quantization_inv(q_block, Q_MAT, q)
+        dct_block = quantization_inv(q_block, mat, q)
         # Step 3: DCT inverse.
         block = dct_inv(dct_block)
         # Step 4: Block combination
@@ -204,7 +219,11 @@ def decompression(bitstream, info_padding, q=50):
         if ((nb_block + 1) % nb_total_block_per_channel) == 0:
             channel += 1
             row, col = 0, 0
-    
+
     # Unpadding.
     img = unpadding(frame, info_padding)
+
+    if channel_mode == "yuv":
+        img = yuv2rgb(img)
+
     return img
