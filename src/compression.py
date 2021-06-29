@@ -1,7 +1,7 @@
-import itertools
 import numpy as np
 import scipy as sp
 import scipy.fft
+from skimage.color import rgb2yuv
 
 from src.utils import Q_MAT, Q_MAT_UV, HUFFMAN_DC_TABLE, HUFFMAN_AC_TABLE, LARGEST_RANGE
 from src.utils import decimal_to_binary
@@ -94,7 +94,7 @@ def quantization(dct_block, mat, q=50):
     
     Qq = np.floor((a*mat + 50) / 100)
     q_block = np.divide(dct_block, Qq)
-    q_block = np.rint(q_block).astype(np.int64)
+    q_block = np.rint(q_block).astype(int)
     return q_block
 
 def zigzag(q_block):
@@ -115,39 +115,6 @@ def zigzag(q_block):
                 res[i + j].append(q_block[i][j])
 
     return np.trim_zeros(np.concatenate(res), trim='b')
-
-def rgb2yuv(img):
-    """
-        Convert the RGB channels into YUV channels
-
-        @Params:
-        - img: input image of shape (c, n, m).
-    """
-    c, n, m = img.shape
-    Y = np.zeros((n, m))
-    U = np.zeros((n, m))
-    V = np.zeros((n, m))
-
-    for i in range(n):
-        for j in range(m):
-            Y[i][j] =  0.299 * img[0][i][j] + 0.587 * img[1][i][j] + 0.114 * img[2][i][j]
-            
-            # Method 1:
-            # U[i][j] = (img[2][i][j] - Y[i][j]) / 2.0321
-            # V[i][j] = (img[0][i][j] - Y[i][j]) / 1.1398
-
-            # Method 2:
-            U[i][j] = -0.14713 * img[0][i][j] - 0.28886 * img[1][i][j] + 0.436 * img[2][i][j]
-            V[i][j] = 0.615 * img[0][i][j] - 0.51499 * img[1][i][j] - 0.10001 * img[2][i][j]
-
-            U[i][j] = min(U[i][j], 0.436 * 255) if U[i][j] > 0 else max(U[i][j], -0.436 * 255)
-            V[i][j] = min(V[i][j], 0.615 * 255) if V[i][j] > 0 else max(V[i][j], -0.615 * 255)
-
-
-    img[0] = Y
-    img[1] = U
-    img[2] = V
-    return img
 
 def huffman(zigzag_order, LARGEST_RANGE):
     """
@@ -200,6 +167,9 @@ def compression(img, q=50, mode="replicate", channel_mode="rgb"):
     if len(img.shape) != 3 or img.shape[2] != 3:
         raise ValueError("Input image dimension is not supported")
     
+    if channel_mode == "yuv":
+        img = rgb2yuv(img)
+
     img = np.transpose(img, (2, 0, 1))
     
     # Padding information needed during decompression (mutable object).
@@ -212,9 +182,6 @@ def compression(img, q=50, mode="replicate", channel_mode="rgb"):
     }
 
     bitstream = []
-
-    if channel_mode == "yuv":
-        img = rgb2yuv(img)
 
     for channel in range(3):
         # Padd each image channel.

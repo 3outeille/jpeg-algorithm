@@ -1,6 +1,6 @@
-import itertools
 import numpy as np
 import scipy as sp
+from skimage.color import yuv2rgb
 
 from src.utils import Q_MAT, Q_MAT_UV, HUFFMAN_DC_TABLE_INV, HUFFMAN_AC_TABLE_INV, LARGEST_RANGE
 from src.utils import binary_to_decimal
@@ -159,29 +159,6 @@ def unpadding(img, info_padding):
         og_img = img[ax1_top:n-ax1_bot, ax2_left:m-ax2_right]
 
     return og_img
-
-def yuv2rgb(img):
-    """
-        Convert the YUV channels into RGB channels
-
-        @Params:
-        - img: input image of shape (n, m, c).
-    """
-    n, m, c = img.shape
-    R = np.zeros((n, m))
-    G = np.zeros((n, m))
-    B = np.zeros((n, m))
-    for i in range(n):
-        for j in range(m):
-            R[i][j] = 1 * img[...,0][i][j] + 1.13983 * img[...,2][i][j]
-            G[i][j] = 1 * img[...,0][i][j] - 0.39465 * img[...,1][i][j] - 0.58060 * img[...,2][i][j]
-            B[i][j] = 1 * img[...,0][i][j] + 2.03211 * img[...,1][i][j]
-
-    img[...,0] = R
-    img[...,1] = G
-    img[...,2] = B
-
-    return img
 
 def decompression(bitstream, info_padding, q=50, channel_mode="rgb"):
     """
