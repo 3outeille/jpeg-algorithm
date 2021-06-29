@@ -117,6 +117,12 @@ def zigzag(q_block):
     return np.trim_zeros(np.concatenate(res), trim='b')
 
 def rgb2yuv(img):
+    """
+        Convert the RGB channels into YUV channels
+
+        @Params:
+        - img: input image of shape (c, n, m).
+    """
     c, n, m = img.shape
     Y = np.zeros((n, m))
     U = np.zeros((n, m))
