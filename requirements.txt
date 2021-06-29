@@ -5,9 +5,3 @@ matplotlib
 pytest
 scipy
 scikit-image
-
-# Test
-plotly
-pandas
-ipywidgets
-imageio
