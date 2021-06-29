@@ -188,7 +188,38 @@ def huffman(zigzag_order, LARGEST_RANGE):
     final_encoding.append(HUFFMAN_AC_TABLE[EOB])
     return final_encoding
 
-def compression(img, q=50, mode="replicate", channel_mode="rgb"):
+def downsampling(img, mode):
+    def swap_col(arr, start_index, last_index):
+        arr[:, [start_index, last_index]] = arr[:, [last_index, start_index]]
+
+    def swap_row(arr, start_index, last_index):
+        arr[[start_index, last_index]] = arr[[last_index, start_index]]
+
+    if mode == "4:4:4":
+        return
+
+    # Remove even columm
+    for i in range(2, img.shape[2], 2):
+        swap_col(img[1], i, i // 2)
+        swap_col(img[2], i, i // 2)
+
+    for i in range(img.shape[2] // 2, img.shape[2]):
+        for j in range(img.shape[1]):
+            img[1][j][i] = 0
+            img[2][j][i] = 0
+
+    if mode == "4:2:0":
+        # Remove even row 
+        for i in range(2, img.shape[1], 2):
+            swap_row(img[1], i, i // 2)
+            swap_row(img[2], i, i // 2)
+
+        for i in range(img.shape[1] // 2, img.shape[1]):
+            for j in range(img.shape[2]):
+                img[1][i][j] = 0
+                img[2][i][j] = 0
+
+def compression(img, q=50, mode="replicate", channel_mode="rgb", downsampling_mode="4:4:4"):
     """
         Returns bitstream representing compressed image.
 
@@ -215,6 +246,8 @@ def compression(img, q=50, mode="replicate", channel_mode="rgb"):
 
     if channel_mode == "yuv":
         img = rgb2yuv(img)
+
+    downsampling(img, downsampling_mode)
 
     for channel in range(3):
         # Padd each image channel.

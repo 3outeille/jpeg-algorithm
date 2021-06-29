@@ -183,7 +183,26 @@ def yuv2rgb(img):
 
     return img
 
-def decompression(bitstream, info_padding, q=50, channel_mode="rgb"):
+def upsampling(img, downsampling_mode):
+    if downsampling_mode == "4:4:4":
+        return
+
+    for i in range(img.shape[1] // 2 - 1, 0, -1):
+        for j in range(img.shape[0]):
+            img[...,1][j][2 * i] = img[...,1][j][i]
+            img[...,1][j][(2 * i) + 1] = img[...,1][j][i]
+            img[...,2][j][2 * i] = img[...,2][j][i]
+            img[...,2][j][(2 * i) + 1] = img[...,2][j][i]
+
+    if downsampling_mode == "4:2:0":
+        for i in range(img.shape[0] // 2 - 1, 0, -1):
+            img[...,1][2 * i] = img[...,1][i]
+            img[...,1][(2 * i) + 1] = img[...,1][i]
+            img[...,2][2 * i] = img[...,2][i]
+            img[...,2][(2 * i) + 1] = img[...,2][i]
+
+
+def decompression(bitstream, info_padding, q=50, channel_mode="rgb", downsampling_mode="4:4:4"):
     """
         Returns decompressed image from bitstream.
         
@@ -224,6 +243,8 @@ def decompression(bitstream, info_padding, q=50, channel_mode="rgb"):
         if ((nb_block + 1) % nb_total_block_per_channel) == 0:
             channel += 1
             row, col = 0, 0
+
+    upsampling(frame, downsampling_mode)
 
     # Unpadding.
     img = unpadding(frame, info_padding)
