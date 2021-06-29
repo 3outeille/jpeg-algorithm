@@ -4,6 +4,7 @@ numpy
 matplotlib
 pytest
 scipy
+scikit-image
 
 # Test
 plotly

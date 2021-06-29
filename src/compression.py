@@ -214,9 +214,6 @@ def compression(img, q=50, mode="replicate", channel_mode="rgb", downsampling_mo
 
     bitstream = []
 
-    if channel_mode == "yuv":
-        img = rgb2yuv(img)
-
     downsampling(img, downsampling_mode)
 
     for channel in range(3):
