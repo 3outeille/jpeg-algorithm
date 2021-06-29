@@ -1,4 +1,9 @@
-ipykernel
-matplotlib
+# install codo-jpeg as top-level editable package.
+-e .
 numpy
+matplotlib
 pytest
+scipy
+scikit-image
+ipykernel
+jupyter
