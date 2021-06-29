@@ -5,3 +5,5 @@ matplotlib
 pytest
 scipy
 scikit-image
+ipykernel
+jupyter
