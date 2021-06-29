@@ -156,6 +156,13 @@ def huffman(zigzag_order, LARGEST_RANGE):
     return final_encoding
 
 def downsampling(img, mode):
+    """
+        Downsampling the channel U and V
+
+        @Params:
+        - img: image to downsample
+        - mode: mode of downsampling (4:4:4, 4:2:2, 4:2:0)
+    """
     def swap_col(arr, start_index, last_index):
         arr[:, [start_index, last_index]] = arr[:, [last_index, start_index]]
 

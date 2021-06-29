@@ -184,6 +184,13 @@ def yuv2rgb(img):
     return img
 
 def upsampling(img, downsampling_mode):
+    """
+        Upsampling the channel U and V
+
+        @Params:
+        - img: image to upsample
+        - mode: mode of upsampling (4:4:4, 4:2:2, 4:2:0)
+    """
     if downsampling_mode == "4:4:4":
         return
 
