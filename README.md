@@ -1,4 +1,4 @@
-<img src="./img/jpeg-logo.png" hspace="30%" width="40%">
+<img src="./img/jpeg-logo.png" hspace="35%" width="30%">
 
 > This project is part of the CODO `"Compression de données"` course taught by [Guillaume Tochon](https://www.lrde.epita.fr/wiki/Courses/CODO) at EPITA for third year of undergrad studies. Students are expected to provide a notebook explaining how JPEG algorithms works in depth along with its implementation.
 
